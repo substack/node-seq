@@ -193,6 +193,11 @@ exports.catchParThenSeq = function () {
     var tf = setTimeout(function () {
         assert.fail('final seq not run');
     }, 100);
+    var times = 0;
+    var errs = [
+        { key : 'one', msg : 'rawr' },
+        { key : 'four', msg : 'pow' },
+    ];
     
     Seq()
         .par('one', function () {
@@ -201,16 +206,25 @@ exports.catchParThenSeq = function () {
         .par('two', function () {
             setTimeout(this.bind({}, null, 'y'), 50);
         })
+        .par('three', function () {
+            setTimeout(this.bind({}, null, 'z'), 30);
+        })
+        .par('four', function () {
+            setTimeout(this.bind({}, 'pow'), 45);
+        })
         .seq(function (x, y) {
             assert.fail('seq fired with error above');
         })
         .catch(function (err, key) {
             clearTimeout(tc);
-            assert.eql(err, 'rawr');
-            assert.eql(key, 'one');
+            var e = errs.shift();
+            assert.eql(err, e.msg);
+            assert.eql(key, e.key);
         })
         .seq(function () {
             clearTimeout(tf);
+            times ++;
+            assert.eql(times, 1);
         })
     ;    
 }
