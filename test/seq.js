@@ -143,7 +143,7 @@ exports.catchParWithoutSeq = function () {
     var done = false, caught = false;
     var tc = setTimeout(function () {
         assert.fail('error not caught');
-    }, 75);
+    }, 100);
     
     Seq()
         .par('one', function () {
