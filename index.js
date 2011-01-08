@@ -31,7 +31,7 @@ function builder (saw, xs) {
             if (err) {
                 context.error = { message : err, key : key };
                 saw.step = step;
-                saw.down('catch');
+                g();
             }
             else {
                 if (typeof key == 'number') {
@@ -70,7 +70,9 @@ function builder (saw, xs) {
     
     this.seq = function (key, cb) {
         if (cb === undefined) { cb = key; key = undefined }
-        if (running == 0) {
+        
+        if (context.error) saw.next()
+        else if (running == 0) {
             action(saw.step, key,
                 function () {
                     context.stack_ = [];
@@ -102,7 +104,7 @@ function builder (saw, xs) {
         
         var step = saw.step;
         process.nextTick(function () {
-            action(step, key, cb, function () {
+            action(step, key, cb, function (args) {
                 running --;
                 if (running == 0) {
                     context.stack = context.stack_.slice();
@@ -116,6 +118,7 @@ function builder (saw, xs) {
     };
     
     this.catch = function (cb) {
+console.dir(context.error);
         if (context.error) {
             context.stack = [ context.error.message, context.error.key ];
             action(saw.step, undefined, function () {
@@ -124,8 +127,9 @@ function builder (saw, xs) {
                 context.stack = context.stack_;
                 
                 context.error = null;
-                running = 0;
-                process.nextTick(saw.next);
+                if (running === 0) {
+                    process.nextTick(saw.next);
+                }
             });
         }
         else saw.next();
@@ -153,8 +157,8 @@ function builder (saw, xs) {
                 action(
                     saw.step, i,
                     function () { cb.call(this, xs[i], i) },
-                    function () {
-                        if (i === xs.length - 1) saw.next();
+                    function (args) {
+                        if (!args || i === xs.length - 1) saw.next();
                         else next(i + 1);
                     }
                 );

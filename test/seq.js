@@ -192,7 +192,7 @@ exports.catchParThenSeq = function () {
     }, 75);
     var tf = setTimeout(function () {
         assert.fail('final seq not run');
-    }, 100);
+    }, 500);
     var times = 0;
     var errs = [
         { key : 'one', msg : 'rawr' },
@@ -277,6 +277,8 @@ exports.seqEachCatch = function () {
         assert.fail('never resumed afterwards');
     }, 25);
     
+    var meows = [];
+    
     var values = [];
     Seq(1,2,3,4)
         .seqEach(function (x, i) {
@@ -290,8 +292,9 @@ exports.seqEachCatch = function () {
         })
         .catch(function (err) {
             clearTimeout(to);
+            meows.push(err);
             assert.eql(err, 'meow 2');
-            assert.deepEqual(values, [[0,1],[1,2],[2,3]]);
+            assert.eql(values, [[0,1],[1,2],[2,3]]);
         })
         .seq(function () {
             clearTimeout(tf);
