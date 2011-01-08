@@ -31,6 +31,7 @@ function builder (saw, xs) {
             if (err) {
                 context.error = { message : err, key : key };
                 saw.step = step;
+                saw.down('catch');
                 g();
             }
             else {
@@ -118,7 +119,6 @@ function builder (saw, xs) {
     };
     
     this.catch = function (cb) {
-console.dir(context.error);
         if (context.error) {
             context.stack = [ context.error.message, context.error.key ];
             action(saw.step, undefined, function () {
@@ -126,8 +126,8 @@ console.dir(context.error);
                 cb.apply(this, arguments);
                 context.stack = context.stack_;
                 
-                context.error = null;
                 if (running === 0) {
+                    context.error = null;
                     process.nextTick(saw.next);
                 }
             });
