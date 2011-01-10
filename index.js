@@ -16,6 +16,10 @@ function Seq () {
     return ch;
 }
 
+Seq.ap = function (xs) {
+    return Seq().extend(xs);
+};
+
 function builder (saw, xs) {
     var context = this.context = {
         vars : {},
