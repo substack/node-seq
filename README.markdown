@@ -82,6 +82,13 @@ Seq(x, y...)
 The constructor function creates a new `Seq` chain with the methods described
 below. The optional arguments given become the new context stack.
 
+Seq.ap([x, y...])
+-----------------
+
+Exactly like `Seq(x, y...)` or `Seq().extend([x,y...])`.
+This is just another handy way for populating the stack.
+The `ap` is short for `apply`.
+
 seq(cb)
 -------
 seq(key, cb)
