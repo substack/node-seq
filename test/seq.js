@@ -4,7 +4,7 @@ var assert = require('assert');
 exports.seq = function () {
     var to = setTimeout(function () {
         assert.fail('never got to the end of the chain');
-    }, 50);
+    }, 100);
     
     Seq(0)
         .seq('pow', function (n) {
@@ -32,7 +32,7 @@ exports.seq = function () {
 exports.into = function () {
     var to = setTimeout(function () {
         assert.fail('never got to the end of the chain');
-    }, 50);
+    }, 10);
     var calls = 0;
     
     Seq(3,4,5)
@@ -51,11 +51,11 @@ exports.into = function () {
 exports.catchSeq = function () {
     var to = setTimeout(function () {
         assert.fail('never caught the error');
-    }, 50);
+    }, 100);
     
     var tf = setTimeout(function () {
         assert.fail('final action never executed');
-    }, 50);
+    }, 100);
     
     var calls = {};
     Seq(1)
@@ -305,7 +305,7 @@ exports.seqEachCatch = function () {
 exports.parEach = function () {
     var to = setTimeout(function () {
         assert.fail('never finished');
-    }, 50);
+    }, 100);
     
     var values = [];
     Seq(1,2,3,4)
@@ -347,7 +347,7 @@ exports.parEachVars = function () {
 exports.parEachInto = function () {
     var to = setTimeout(function () {
         assert.fail('never finished');
-    }, 50);
+    }, 100);
     
     Seq(1,2,3,4)
         .parEach(function (x, i) {
@@ -366,7 +366,7 @@ exports.parEachInto = function () {
 exports.parEachCatch = function () {
     var to = setTimeout(function () {
         assert.fail('never finished');
-    }, 50);
+    }, 100);
     
     var values = [];
     Seq(1,2,3,4)
@@ -485,7 +485,7 @@ exports.seqMap = function () {
 exports.stack = function () {
     var to = setTimeout(function () {
         assert.fail('never finished');
-    }, 50);
+    }, 100);
     
     Seq(4,5,6)
         .seq(function (x, y, z) {
@@ -555,7 +555,7 @@ exports.stack = function () {
 exports.empty = function () {
     var to = setTimeout(function () {
         assert.fail('never finished');
-    }, 50);
+    }, 100);
     
     Seq()
         .seqEach(function (x) {
@@ -563,6 +563,24 @@ exports.empty = function () {
         })
         .seq(function () {
             clearTimeout(to);
+        })
+    ;
+};
+
+exports.ap = function () {
+    var to = setTimeout(function () {
+        assert.fail('never finished');
+    }, 100);
+    
+    var cmp = [1,2,3];
+    Seq.ap([1,2,3])
+        .seqEach(function (x) {
+            assert.eql(cmp.shift(), x);
+            this(null);
+        })
+        .seq(function () {
+            clearTimeout(to);
+            assert.eql(cmp, []);
         })
     ;
 };
