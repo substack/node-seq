@@ -68,6 +68,7 @@ function builder (saw, xs) {
     }
     
     var running = 0;
+    var errors = 0;
     
     this.seq = function (key, cb) {
         if (cb === undefined) { cb = key; key = undefined }
@@ -105,11 +106,15 @@ function builder (saw, xs) {
         
         var step = saw.step;
         process.nextTick(function () {
-            action(step, key, cb, function () {
+            action(step, key, cb, function (args) {
+                if (!args) errors ++;
+                
                 running --;
                 if (running == 0) {
                     context.stack = context.stack_.slice();
                     saw.step = lastPar;
+                    if (errors > 0) saw.down('catch');
+                    errors = 0;
                     saw.next();
                 }
             });
