@@ -177,7 +177,7 @@ exports.catchParMultipleErrors = function() {
         .catch(function(err,key) {
             caught[key] = err;
         })
-        .seq(function(){
+        .seq(function() {
             clearTimeout(to);
             times ++;
             assert.eql(times, 1);

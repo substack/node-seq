@@ -30,6 +30,7 @@ function builder (saw, xs) {
             var args = [].slice.call(arguments, 1);
             if (err) {
                 context.error = { message : err, key : key };
+                saw.jump(lastPar);
                 saw.down('catch');
                 g();
             }
@@ -104,11 +105,10 @@ function builder (saw, xs) {
         
         var step = saw.step;
         process.nextTick(function () {
-            action(step, key, cb, function (args) {
+            action(step, key, cb, function () {
                 running --;
                 if (running == 0) {
                     context.stack = context.stack_.slice();
-                    
                     saw.step = lastPar;
                     saw.next();
                 }
@@ -118,20 +118,11 @@ function builder (saw, xs) {
     };
     
     this.catch = function (cb) {
-        if (!context.error) saw.next()
-        else {
-            context.stack = [ context.error.message, context.error.key ];
-            action(saw.step, undefined, function () {
-                context.stack_ = [];
-                cb.apply(this, arguments);
-                context.stack = context.stack_;
-                
-                if (running === 0) {
-                    context.error = null;
-                    saw.next();
-                }
-            });
+        if (context.error) {
+            cb.call(context, context.error.message, context.error.key);
+            context.error = null;
         }
+        saw.next();
     };
     
     this.forEach = function (cb) {
