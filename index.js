@@ -75,14 +75,21 @@ function builder (saw, xs) {
     var errors = 0;
     
     this.seq = function (key, cb) {
-        if (cb === undefined) { cb = key; key = undefined }
+        var bound = [].slice.call(arguments, 2);
+        if (typeof key === 'function') {
+            if (arguments.length > 1) bound.unshift(cb);
+            cb = key;
+            key = undefined;
+        }
         
         if (context.error) saw.next()
         else if (running === 0) {
             action(saw.step, key,
                 function () {
                     context.stack_ = [];
-                    cb.apply(this, arguments);
+                    var args = [].slice.call(arguments);
+                    args.unshift.apply(args, bound);
+                    cb.apply(this, args);
                 }, function () {
                     context.stack = context.stack_;
                     saw.next()

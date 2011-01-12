@@ -584,3 +584,22 @@ exports.ap = function () {
         })
     ;
 };
+
+exports.seqBind = function () {
+    var to = setTimeout(function () {
+        assert.fail('never finished');
+    }, 100);
+    
+    Seq(4, 5)
+        .seq(function (a, b, c, d) {
+            assert.eql(a, 2);
+            assert.eql(b, 3);
+            assert.eql(c, 4);
+            assert.eql(d, 5);
+            this(null);
+        }, 2, 3)
+        .seq(function () {
+            clearTimeout(to);
+        })
+    ;
+};
