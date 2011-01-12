@@ -91,8 +91,8 @@ The `ap` is short for `apply`.
 
 seq(cb)
 -------
-seq(key, cb)
-------------
+seq(key, cb, *args)
+-------------------
 
 This eponymous function executes actions sequentially.
 Once all running parallel actions are finished executing,
@@ -106,9 +106,12 @@ If `key` is specified, the second argument sent to `this` goes to
 `this.vars[key]` in addition to the stack and `this.args`.
 `this.vars` persists across all requests unless it is overwritten.
 
+All arguments after `cb` will be bound to `cb`, which is useful because
+`.bind()` makes you set `this`.
+
 par(cb)
 -------
-par(cb, key)
+par(key, cb, *args)
 ------------
 
 Use `par` to execute actions in parallel.
@@ -125,6 +128,9 @@ the second will get pushed to the stack. Further arguments are available in
 If `key` is specified, the result from the second argument send to `this()` goes
 to `this.vars[key]`.
 `this.vars` persists across all requests unless it is overwritten.
+
+All arguments after `cb` will be bound to `cb`, which is useful because
+`.bind()` makes you set `this`.
 
 catch(cb)
 ---------
