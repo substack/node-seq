@@ -107,17 +107,24 @@ function builder (saw, xs) {
             context.stack_ = [];
         }
         
-        if (cb === undefined) {
+        var bound = [].slice.call(arguments, 2);
+        if (typeof key === 'function') {
+            if (arguments.length > 1) bound.unshift(cb);
             cb = key;
             key = context.stack_.length;
             context.stack_.push(null);
         }
+        var cb_ = function () {
+            var args = [].slice.call(arguments);
+            args.unshift.apply(args, bound);
+            cb.apply(this, args);
+        };
         
         running ++;
         
         var step = saw.step;
         process.nextTick(function () {
-            action(step, key, cb, function (args) {
+            action(step, key, cb_, function (args) {
                 if (!args) errors ++;
                 
                 running --;

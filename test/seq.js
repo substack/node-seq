@@ -603,3 +603,34 @@ exports.seqBind = function () {
         })
     ;
 };
+
+exports.parBind = function () {
+    var t1 = setTimeout(function () {
+        assert.fail('1 never finished');
+    }, 500);
+    var t2 = setTimeout(function () {
+        assert.fail('2 never finished');
+    }, 500);
+    var t3 = setTimeout(function () {
+        assert.fail('3 never finished');
+    }, 500);
+    
+    Seq('c')
+        .par(function (a, b, c) {
+            clearTimeout(t1);
+            assert.eql(a, 'a');
+            assert.eql(b, 'b');
+            assert.eql(c, 'c');
+            this(null);
+        }, 'a', 'b')
+        .par(function (x, c) {
+            clearTimeout(t2);
+            assert.eql(x, 'x');
+            assert.eql(c, 'c');
+            this(null);
+        }, 'x')
+        .seq(function () {
+            clearTimeout(t3);
+        })
+    ;
+};
