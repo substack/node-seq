@@ -190,7 +190,8 @@ function builder (saw, xs) {
         var finished = 0;
         var queue = [];
         
-        xs.forEach(function call (x, i) {
+        if (xs.length === 0) saw.next()
+        else xs.forEach(function call (x, i) {
             if (active >= limit) {
                 queue.push(call.bind(this, x, i));
             }
