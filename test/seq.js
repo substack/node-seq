@@ -634,3 +634,18 @@ exports.parBind = function () {
         })
     ;
 };
+
+exports.emptyForEach = function () {
+    var to = setTimeout(function () {
+        assert.fail('seq never fired');
+    }, 500);
+    
+    Seq()
+        .forEach(function () {
+            assert.fail('non-empty stack');
+        })
+        .seq(function () {
+            clearTimeout(to);
+        })
+    ;
+};
