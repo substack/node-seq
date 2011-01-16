@@ -552,21 +552,6 @@ exports.stack = function () {
     ;
 };
 
-exports.empty = function () {
-    var to = setTimeout(function () {
-        assert.fail('never finished');
-    }, 100);
-    
-    Seq()
-        .seqEach(function (x) {
-            assert.fail('no elements');
-        })
-        .seq(function () {
-            clearTimeout(to);
-        })
-    ;
-};
-
 exports.ap = function () {
     var to = setTimeout(function () {
         assert.fail('never finished');
@@ -635,6 +620,21 @@ exports.parBind = function () {
     ;
 };
 
+exports.emptySeqEach = function () {
+    var to = setTimeout(function () {
+        assert.fail('never finished');
+    }, 100);
+    
+    Seq()
+        .seqEach(function (x) {
+            assert.fail('no elements');
+        })
+        .seq(function () {
+            clearTimeout(to);
+        })
+    ;
+};
+
 exports.emptyForEach = function () {
     var to = setTimeout(function () {
         assert.fail('seq never fired');
@@ -642,6 +642,21 @@ exports.emptyForEach = function () {
     
     Seq()
         .forEach(function () {
+            assert.fail('non-empty stack');
+        })
+        .seq(function () {
+            clearTimeout(to);
+        })
+    ;
+};
+
+exports.emptyParEach = function () {
+    var to = setTimeout(function () {
+        assert.fail('seq never fired');
+    }, 500);
+    
+    Seq()
+        .parEach(function () {
             assert.fail('non-empty stack');
         })
         .seq(function () {
