@@ -664,3 +664,33 @@ exports.emptyParEach = function () {
         })
     ;
 };
+
+exports.emptyParMap = function () {
+    var to = setTimeout(function () {
+        assert.fail('seq never fired');
+    }, 500);
+    
+    Seq()
+        .parMap(function () {
+            assert.fail('non-empty stack');
+        })
+        .seq(function () {
+            clearTimeout(to);
+        })
+    ;
+};
+
+exports.emptySeqMap = function () {
+    var to = setTimeout(function () {
+        assert.fail('seq never fired');
+    }, 500);
+    
+    Seq()
+        .seqMap(function () {
+            assert.fail('non-empty stack');
+        })
+        .seq(function () {
+            clearTimeout(to);
+        })
+    ;
+};

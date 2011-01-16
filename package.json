@@ -1,6 +1,6 @@
 {
     "name" : "seq",
-    "version" : "0.1.5",
+    "version" : "0.1.6",
     "description" : "Chainable asynchronous flow control with sequential and parallel primitives and pipeline-style error handling",
     "modules" : {
         "index" : "./index.js",
