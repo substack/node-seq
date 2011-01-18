@@ -76,6 +76,7 @@ function builder (saw, xs) {
     
     this.seq = function (key, cb) {
         var bound = [].slice.call(arguments, 2);
+        
         if (typeof key === 'function') {
             if (arguments.length > 1) bound.unshift(cb);
             cb = key;
@@ -88,7 +89,10 @@ function builder (saw, xs) {
                 function () {
                     context.stack_ = [];
                     var args = [].slice.call(arguments);
-                    args.unshift.apply(args, bound);
+                    args.unshift.apply(args, bound.map((function (arg) {
+                        return arg === Seq ? this : arg
+                    }).bind(this)));
+                    
                     cb.apply(this, args);
                 }, function () {
                     context.stack = context.stack_;

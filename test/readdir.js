@@ -8,10 +8,10 @@ exports.readdir = function () {
     }, 500);
     
     Seq()
-        .seq(fs.readdir, __dirname)
-        .seq(function () {
+        .seq(fs.readdir, __dirname, Seq)
+        .seq(function (files) {
             clearTimeout(to);
-            assert.ok(this.stack.length > 2);
+            assert.ok(files.length >= 2);
         })
         .catch(assert.fail)
     ;
