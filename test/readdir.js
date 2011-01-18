@@ -16,3 +16,20 @@ exports.readdir = function () {
         .catch(assert.fail)
     ;
 }; 
+
+exports.readdirs = function () {
+    var to = setTimeout(function () {
+        assert.fail('never got to the end of the chain');
+    }, 500);
+    
+    Seq()
+        .par(fs.readdir, __dirname + '/test', Seq)
+        .par(fs.readdir, __dirname + '/examples', Seq)
+        .seq(function (tests, examples) {
+            clearTimeout(to);
+            assert.ok(tests.length >= 2);
+            assert.ok(examples.length >= 2);
+        })
+        .catch(assert.fail)
+    ;
+}; 

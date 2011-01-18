@@ -107,7 +107,14 @@ If `key` is specified, the second argument sent to `this` goes to
 `this.vars` persists across all requests unless it is overwritten.
 
 All arguments after `cb` will be bound to `cb`, which is useful because
-`.bind()` makes you set `this`.
+`.bind()` makes you set `this`. If you pass in `Seq` in the arguments list,
+it'll get transformed into `this` so that you can do:
+
+    Seq()
+        .seq(fs.readdir, __dirname, Seq)
+        .seq(function (files) { console.dir(files) })
+    ;
+which prints an array of files in `__dirname`.
 
 par(cb)
 -------
@@ -130,7 +137,8 @@ to `this.vars[key]`.
 `this.vars` persists across all requests unless it is overwritten.
 
 All arguments after `cb` will be bound to `cb`, which is useful because
-`.bind()` makes you set `this`.
+`.bind()` makes you set `this`. Like `.seq()`, you can pass along `Seq` in these
+bound arguments and it will get tranformed into `this`.
 
 catch(cb)
 ---------
