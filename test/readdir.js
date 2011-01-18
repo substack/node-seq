@@ -23,8 +23,8 @@ exports.readdirs = function () {
     }, 500);
     
     Seq()
-        .par(fs.readdir, __dirname + '/test', Seq)
-        .par(fs.readdir, __dirname + '/examples', Seq)
+        .par(fs.readdir, __dirname, Seq)
+        .par(fs.readdir, __dirname + '/../examples', Seq)
         .seq(function (tests, examples) {
             clearTimeout(to);
             assert.ok(tests.length >= 2);

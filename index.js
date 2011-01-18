@@ -120,7 +120,10 @@ function builder (saw, xs) {
         }
         var cb_ = function () {
             var args = [].slice.call(arguments);
-            args.unshift.apply(args, bound);
+            args.unshift.apply(args, bound.map((function (arg) {
+                return arg === Seq ? this : arg
+            }).bind(this)));
+            
             cb.apply(this, args);
         };
         
