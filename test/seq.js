@@ -119,7 +119,7 @@ exports.catchPar = function () {
     var done = false, caught = false;
     var tc = setTimeout(function () {
         assert.fail('error not caught');
-    }, 75);
+    }, 1000);
     
     Seq()
         .par('one', function () {
@@ -324,7 +324,7 @@ exports.parEach = function () {
 exports.parEachVars = function () {
     var to = setTimeout(function () {
         assert.fail('never finished');
-    }, 70);
+    }, 1000);
     var values = [];
     
     Seq()

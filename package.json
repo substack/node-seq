@@ -3,7 +3,7 @@
     "version" : "0.1.7",
     "description" : "Chainable asynchronous flow control with sequential and parallel primitives and pipeline-style error handling",
     "modules" : {
-        "index" : "./index.js",
+        "index" : "./index.js"
     },
     "repository" : {
         "type" : "git",
