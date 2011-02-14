@@ -86,7 +86,7 @@ exports.catchSeq = function () {
 exports.par = function () {
     var to = setTimeout(function () {
         assert.fail('seq never fired');
-    }, 100);
+    }, 1000);
     
     Seq()
         .seq(function () {
@@ -189,7 +189,7 @@ exports.catchParMultipleErrors = function() {
 exports.catchParThenSeq = function () {
     var tc = setTimeout(function () {
         assert.fail('error not caught');
-    }, 75);
+    }, 1000);
     var tf = setTimeout(function () {
         assert.fail('final seq not run');
     }, 500);

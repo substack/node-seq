@@ -9,7 +9,7 @@ function Seq () {
         builder.call(this, saw, xs);
     });
     process.nextTick(function () {
-        ch.catch(function (err) {
+        ch['catch'](function (err) {
             console.error(err.stack ? err.stack : err)
         });
     });
@@ -147,7 +147,7 @@ function builder (saw, xs) {
         saw.next();
     };
     
-    this.catch = function (cb) {
+    this['catch'] = function (cb) {
         if (context.error) {
             cb.call(context, context.error.message, context.error.key);
             context.error = null;
@@ -294,7 +294,7 @@ function builder (saw, xs) {
         saw.next();
     };
     
-    this.do = function (cb) {
+    this['do'] = function (cb) {
         saw.nest(cb, context);
     };
 }
