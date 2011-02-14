@@ -164,7 +164,7 @@ exports.catchParMultipleErrors = function() {
     var caught={};
     var to = setTimeout(function() {
         assert.fail('Never finished');
-    }, 100);
+    }, 1000);
     var times = 0;
     
     Seq()
