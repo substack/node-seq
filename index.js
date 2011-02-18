@@ -1,5 +1,5 @@
 var EventEmitter = require('events').EventEmitter;
-var Hash = require('traverse/hash');
+var Hash = require('hashish');
 var Chainsaw = require('chainsaw');
 
 module.exports = Seq;
@@ -8,6 +8,7 @@ function Seq () {
     var ch = Chainsaw(function (saw) {
         builder.call(this, saw, xs);
     });
+    
     process.nextTick(function () {
         ch['catch'](function (err) {
             console.error(err.stack ? err.stack : err)

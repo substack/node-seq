@@ -14,7 +14,7 @@ stat_all.js
 -----------
 
     var fs = require('fs');
-    var Hash = require('traverse/hash');
+    var Hash = require('hashish');
     var Seq = require('seq');
     
     Seq()

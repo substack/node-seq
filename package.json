@@ -1,6 +1,6 @@
 {
     "name" : "seq",
-    "version" : "0.1.8",
+    "version" : "0.2.0",
     "description" : "Chainable asynchronous flow control with sequential and parallel primitives and pipeline-style error handling",
     "main" : "./index.js",
     "repository" : {
@@ -9,7 +9,7 @@
     },
     "dependencies" : {
         "chainsaw" : ">=0.0.5",
-        "traverse" : ">=0.2.3"
+        "hashish" : ">=0.0.2"
     },
     "author" : {
         "name" : "James Halliday",
@@ -17,5 +17,5 @@
         "url" : "http://substack.net"
     },
     "license" : "MIT/X11",
-    "engine" : ["node >=0.2.0"]
+    "engine" : { "node" : ">=0.2.0" }
 }
