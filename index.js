@@ -162,6 +162,20 @@ function builder (saw, xs) {
         saw.next();
     };
     
+    this.par_ = function (key) {
+        var args = [].slice.call(arguments);
+        if (typeof key === 'function') {
+            args.unshift(undefined);
+        }
+        var cb = args[1];
+        args[1] = function () {
+            var argv = [].slice.call(arguments);
+            argv.unshift(this);
+            cb.apply(this, argv);
+        };
+        this.par.apply(this, args);
+    };
+    
     this['catch'] = function (cb) {
         if (context.error) {
             cb.call(context, context.error.message, context.error.key);
@@ -270,6 +284,18 @@ function builder (saw, xs) {
             cb.apply(self, arguments);
         });
     };
+    
+    [ 'forEach', 'seqEach', 'parEach', 'seqMap', 'parMap' ]
+        .forEach((function (name) {
+            this[name + '_'] = function (cb) {
+                this[name].call(this, function () {
+                    var args = [].slice.call(arguments);
+                    args.unshift(this);
+                    cb.apply(this, args);
+                });
+            };
+        }).bind(this))
+    ;
     
     ['push','pop','shift','unshift','splice']
         .forEach((function (name) {
