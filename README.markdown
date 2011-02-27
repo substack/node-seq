@@ -248,6 +248,23 @@ push(x,y...), pop(), shift(), unshift(x), splice(...)
 
 Executes an array operation on the stack.
 
+Explicit Parameters
+===================
+
+For environments like coffee-script or nested logic where threading `this` is
+bothersome, you can use:
+
+* seq_
+* par_
+* forEach_
+* seqEach_
+* parEach_
+* seqMap_
+* parMap_
+
+which work exactly like their un-underscored counterparts except for the first
+parameter to the supplied callback is set to the context, `this`.
+
 Context
 =======
 
