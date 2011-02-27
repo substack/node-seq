@@ -103,6 +103,20 @@ function builder (saw, xs) {
         }
     };
     
+    this.seq_ = function (key) {
+        var args = [].slice.call(arguments);
+        if (typeof key === 'function') {
+            args.unshift(undefined);
+        }
+        var cb = args[1];
+        args[1] = function () {
+            var argv = [].slice.call(arguments);
+            argv.unshift(this);
+            cb.apply(this, argv);
+        };
+        this.seq.apply(this, args);
+    };
+    
     var lastPar = null;
     this.par = function (key, cb) {
         lastPar = saw.step;
