@@ -103,20 +103,6 @@ function builder (saw, xs) {
         }
     };
     
-    this.seq_ = function (key) {
-        var args = [].slice.call(arguments);
-        if (typeof key === 'function') {
-            args.unshift(undefined);
-        }
-        var cb = args[1];
-        args[1] = function () {
-            var argv = [].slice.call(arguments);
-            argv.unshift(this);
-            cb.apply(this, argv);
-        };
-        this.seq.apply(this, args);
-    };
-    
     var lastPar = null;
     this.par = function (key, cb) {
         lastPar = saw.step;
@@ -162,27 +148,29 @@ function builder (saw, xs) {
         saw.next();
     };
     
-    this.par_ = function (key) {
-        var args = [].slice.call(arguments);
-        
-        var cb = typeof key === 'function'
-            ? args[0] : args[1];
-        
-        var fn = function () {
-            var argv = [].slice.call(arguments);
-            argv.unshift(this);
-            cb.apply(this, argv);
+    [ 'seq', 'par' ].forEach((function (name) {
+        this[name + '_'] = function (key) {
+            var args = [].slice.call(arguments);
+            
+            var cb = typeof key === 'function'
+                ? args[0] : args[1];
+            
+            var fn = function () {
+                var argv = [].slice.call(arguments);
+                argv.unshift(this);
+                cb.apply(this, argv);
+            };
+            
+            if (typeof key === 'function') {
+                args[0] = fn;
+            }
+            else {
+                args[1] = fn;
+            }
+            
+            this[name].apply(this, args);
         };
-        
-        if (typeof key === 'function') {
-            args[0] = fn;
-        }
-        else {
-            args[1] = fn;
-        }
-        
-        this.par.apply(this, args);
-    };
+    }).bind(this));
     
     this['catch'] = function (cb) {
         if (context.error) {
