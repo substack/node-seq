@@ -164,15 +164,23 @@ function builder (saw, xs) {
     
     this.par_ = function (key) {
         var args = [].slice.call(arguments);
-        if (typeof key === 'function') {
-            args.unshift(undefined);
-        }
-        var cb = args[1];
-        args[1] = function () {
+        
+        var cb = typeof key === 'function'
+            ? args[0] : args[1];
+        
+        var fn = function () {
             var argv = [].slice.call(arguments);
             argv.unshift(this);
             cb.apply(this, argv);
         };
+        
+        if (typeof key === 'function') {
+            args[0] = fn;
+        }
+        else {
+            args[1] = fn;
+        }
+        
         this.par.apply(this, args);
     };
     

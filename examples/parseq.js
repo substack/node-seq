@@ -10,7 +10,7 @@ Seq()
         exec('groups ' + who, this);
     })
     .par(function (who) {
-        fs.readFile(__filename, 'ascii', this);
+        fs.readFile(__filename, 'utf8', this);
     })
     .seq(function (groups, src) {
         console.log('Groups: ' + groups.trim());
