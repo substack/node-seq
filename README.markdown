@@ -224,9 +224,10 @@ do(cb)
 Create a new nested context. `cb`'s first argument is the previous context.
 
 flatten(fully=true)
----------
+-------------------
 
-Recursively flatten all the arrays in the stack. Set fully=false to flatten only one level.
+Recursively flatten all the arrays in the stack. Set `fully=false` to flatten
+only one level.
 
 extend([x,y...])
 ----------------
