@@ -1,6 +1,6 @@
 {
     "name" : "seq",
-    "version" : "0.2.1",
+    "version" : "0.2.2",
     "description" : "Chainable asynchronous flow control with sequential and parallel primitives and pipeline-style error handling",
     "main" : "./index.js",
     "repository" : {
@@ -11,6 +11,10 @@
         "chainsaw" : ">=0.0.5",
         "hashish" : ">=0.0.2"
     },
+    "keywords" : [
+        "flow-control", "flow", "control", "async", "asynchronous", "chain",
+        "pipeline", "sequence", "sequential", "parallel", "error"
+    ],
     "author" : {
         "name" : "James Halliday",
         "email" : "mail@substack.net",
