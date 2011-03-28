@@ -311,10 +311,13 @@ function builder (saw, xs) {
         saw.next();
     };
     
-    this.flatten = function () {
+    this.flatten = function (pancake) {
         var xs = [];
+        // should we fully flatten this array? (default: true)
+        if (pancake === undefined) { pancake = true; }
         context.stack.forEach(function f (x) {
-            if (Array.isArray(x)) x.forEach(f);
+            if (Array.isArray(x) && pancake) x.forEach(f);
+            else if (Array.isArray(x)) xs = xs.concat(x);
             else xs.push(x);
         });
         context.stack = xs;

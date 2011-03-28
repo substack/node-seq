@@ -530,6 +530,14 @@ exports.stack = function () {
             assert.eql(this.stack, ['c','d','e']);
             this.pass(null);
         })
+        .set(['a',['b']],['c','d',['e']])
+        .flatten(false) // only flatten one level
+        .seq(function (a, b, c, d, e) {
+            assert.eql(arguments.length, 5);
+            assert.eql([a,b,c,d,e], ['a',['b'],'c','d',['e']]);
+            assert.eql(this.stack,  ['a',['b'],'c','d',['e']]);
+            this.pass(null);
+        })
         .set(['a','b'],['c','d',['e']])
         .flatten()
         .seq(function (a, b, c, d, e) {
