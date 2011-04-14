@@ -272,31 +272,36 @@ Context
 Each callback gets executed with its `this` set to a function in order to yield
 results, error values, and control. The function also has these useful fields:
 
-stack
------
+this.stack
+----------
 
 The execution stack.
 
-stack_
-------
+this.stack_
+-----------
 
 The previous stack value, mostly used internally for hackish purposes.
 
-vars
-----
+this.vars
+---------
 
 A hash of key/values populated with `par(key, ...)`, `seq(key, ...)` and
 `this.into(key)`.
 
-into(key)
----------
+this.into(key)
+--------------
 
 Instead of sending values to the stack, sets a key and returns `this`.
 Use `this.into(key)` interchangeably with `this` for yielding keyed results.
 `into` overrides the optional key set by `par(key, ...)` and `seq(key, ...)`.
 
-args
-----
+this.ok
+-------
+
+Set the `err` to null. Equivalent to `this.bind(this, null)`.
+
+this.args
+---------
 
 `this.args` is like `this.stack`, but it contains all the arguments to `this()`
 past the error value, not just the first. `this.args` is an array with the same
@@ -304,8 +309,8 @@ indices as `this.stack` but also stores keyed values for the last sequential
 operation. Each element in `this.array` is set to `[].slice.call(arguments, 1)`
 from inside `this()`.
 
-error
------
+this.error
+----------
 
 This is used for error propagation. You probably shouldn't mess with it.
 
