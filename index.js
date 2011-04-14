@@ -69,6 +69,9 @@ function builder (saw, xs) {
         cb.pass = function (err) {
             cb.apply(cb, [err].concat(context.stack));
         };
+        
+        cb.ok = cb.bind(cb, null);
+        
         f.apply(cb, context.stack);
     }
     

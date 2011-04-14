@@ -143,7 +143,7 @@ exports.catchParWithoutSeq = function () {
     var done = false, caught = false;
     var tc = setTimeout(function () {
         assert.fail('error not caught');
-    }, 100);
+    }, 5000);
     
     Seq()
         .par('one', function () {
@@ -699,6 +699,25 @@ exports.emptySeqMap = function () {
         })
         .seq(function () {
             clearTimeout(to);
+        })
+    ;
+};
+
+exports.ok = function () {
+    var to = setTimeout(function () {
+        assert.fail('seq never fired');
+    }, 500);
+    
+    function moo1 (cb) { cb(3) }
+    function moo2 (cb) { cb(4) }
+    
+    Seq()
+        .par(function () { moo1(this.ok) })
+        .par(function () { moo2(this.ok) })
+        .seq(function (x, y) {
+            clearTimeout(to);
+            assert.eql(x, 3);
+            assert.eql(y, 4);
         })
     ;
 };
