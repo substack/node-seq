@@ -332,8 +332,8 @@ function builder (saw, xs) {
         saw.next();
     };
     
-    this.set = function () {
-        context.stack = [].slice.call(arguments);
+    this.set = function (stack) {
+        context.stack = stack;
         saw.next();
     };
     
