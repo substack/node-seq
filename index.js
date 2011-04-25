@@ -327,6 +327,11 @@ function builder (saw, xs) {
         saw.next();
     };
     
+    this.unflatten = function () {
+        context.stack = [context.stack];
+        saw.next();
+    };
+    
     this.empty = function () {
         context.stack = [];
         saw.next();
