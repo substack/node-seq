@@ -18,6 +18,9 @@ function Seq () {
 }
 
 Seq.ap = function (xs) {
+    if (!Array.isArray(xs)) {
+        throw new Error('argument to .ap() is not an Array');
+    }
     return Seq().extend(xs);
 };
 
@@ -310,6 +313,9 @@ function builder (saw, xs) {
     ;
     
     this.extend = function (xs) {
+        if (!Array.isArray(xs)) {
+            throw new Error('argument to .extend() is not an Array');
+        }
         context.stack.push.apply(context.stack, xs);
         saw.next();
     };

@@ -576,6 +576,10 @@ exports.ap = function () {
             assert.eql(cmp, []);
         })
     ;
+    
+    assert.throws(function () {
+        Seq.ap({ a : 1, b : 2 });
+    });
 };
 
 exports.seqBind = function () {
