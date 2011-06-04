@@ -3,10 +3,13 @@ var Hash = require('hashish');
 var Chainsaw = require('chainsaw');
 
 module.exports = Seq;
-function Seq () {
-    var xs = [].slice.call(arguments);
+function Seq (xs) {
+    if (xs && !Array.isArray(xs) || arguments.length > 1) {
+        throw new Error('Optional argument to Seq() is exactly one Array');
+    }
+    
     var ch = Chainsaw(function (saw) {
-        builder.call(this, saw, xs);
+        builder.call(this, saw, xs || []);
     });
     
     process.nextTick(function () {
@@ -17,12 +20,7 @@ function Seq () {
     return ch;
 }
 
-Seq.ap = function (xs) {
-    if (!Array.isArray(xs)) {
-        throw new Error('argument to .ap() is not an Array');
-    }
-    return Seq().extend(xs);
-};
+Seq.ap = Seq; // for compatability with versions <0.3
 
 function builder (saw, xs) {
     var context = this.context = {
