@@ -6,7 +6,7 @@ exports.seq = function () {
         assert.fail('never got to the end of the chain');
     }, 100);
     
-    Seq(0)
+    Seq([0])
         .seq('pow', function (n) {
             this(null, 1);
         })
@@ -35,7 +35,7 @@ exports.into = function () {
     }, 10);
     var calls = 0;
     
-    Seq(3,4,5)
+    Seq([3,4,5])
         .seq(function () {
             this.into('w')(null, 5);
         })
@@ -58,7 +58,7 @@ exports.catchSeq = function () {
     }, 100);
     
     var calls = {};
-    Seq(1)
+    Seq([1])
         .seq(function (n) {
             assert.eql(n, 1);
             calls.before = true;
@@ -235,7 +235,7 @@ exports.forEach = function () {
     }, 25);
     
     var count = 0;
-    Seq(1,2,3)
+    Seq([1,2,3])
         .push(4)
         .forEach(function (x, i) {
             assert.eql(x - 1, i);
@@ -255,7 +255,7 @@ exports.seqEach = function () {
     
     var count = 0;
     var ii = 0;
-    Seq(1,2,3)
+    Seq([1,2,3])
         .seqEach(function (x, i) {
             assert.eql(i, ii++);
             assert.eql(x, [1,2,3][i]);
@@ -280,7 +280,7 @@ exports.seqEachCatch = function () {
     var meows = [];
     
     var values = [];
-    Seq(1,2,3,4)
+    Seq([1,2,3,4])
         .seqEach(function (x, i) {
             values.push([i,x]);
             assert.eql(x - 1, i);
@@ -308,7 +308,7 @@ exports.parEach = function () {
     }, 100);
     
     var values = [];
-    Seq(1,2,3,4)
+    Seq([1,2,3,4])
         .parEach(function (x, i) {
             values.push([i,x]);
             setTimeout(this.bind({}, null), 20);
@@ -349,7 +349,7 @@ exports.parEachInto = function () {
         assert.fail('never finished');
     }, 100);
     
-    Seq(1,2,3,4)
+    Seq([1,2,3,4])
         .parEach(function (x, i) {
             setTimeout((function () {
                 this.into('abcd'.charAt(i))(null, x);
@@ -369,7 +369,7 @@ exports.parEachCatch = function () {
     }, 100);
     
     var values = [];
-    Seq(1,2,3,4)
+    Seq([1,2,3,4])
         .parEach(function (x, i) {
             values.push([i,x]);
             setTimeout(this.bind({}, 'zing'), 10);
@@ -392,7 +392,7 @@ exports.parEachLimited = function () {
     
     var running = 0;
     var values = [];
-    Seq(1,2,3,4,5,6,7,8,9,10)
+    Seq([1,2,3,4,5,6,7,8,9,10])
         .parEach(3, function (x, i) {
             running ++;
             
@@ -420,7 +420,7 @@ exports.parMap = function () {
     
     var running = 0;
     var values = [];
-    Seq(1,2,3,4,5,6,7,8,9,10)
+    Seq([1,2,3,4,5,6,7,8,9,10])
         .parMap(2, function (x, i) {
             running ++;
             
@@ -445,7 +445,7 @@ exports.parMapFast = function () {
     }, 500);
     
     var values = [];
-    Seq(1,2,3,4,5,6,7,8,9,10)
+    Seq([1,2,3,4,5,6,7,8,9,10])
         .parMap(function (x, i) {
             this(null, x * 10);
         })
@@ -464,7 +464,7 @@ exports.seqMap = function () {
     
     var running = 0;
     var values = [];
-    Seq(1,2,3,4,5,6,7,8,9,10)
+    Seq([1,2,3,4,5,6,7,8,9,10])
         .seqMap(function (x, i) {
             running ++;
             
@@ -487,7 +487,7 @@ exports.stack = function () {
         assert.fail('never finished');
     }, 100);
     
-    Seq(4,5,6)
+    Seq([4,5,6])
         .seq(function (x, y, z) {
             assert.eql(arguments.length, 3);
             assert.eql([x,y,z], [4,5,6]);
@@ -587,7 +587,7 @@ exports.seqBind = function () {
         assert.fail('never finished');
     }, 100);
     
-    Seq(4, 5)
+    Seq([4,5])
         .seq(function (a, b, c, d) {
             assert.eql(a, 2);
             assert.eql(b, 3);
@@ -612,7 +612,7 @@ exports.parBind = function () {
         assert.fail('3 never finished');
     }, 500);
     
-    Seq('c')
+    Seq(['c'])
         .par(function (a, b, c) {
             clearTimeout(t1);
             assert.eql(a, 'a');
