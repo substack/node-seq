@@ -96,9 +96,9 @@ function builder (saw, xs) {
                 function () {
                     context.stack_ = [];
                     var args = [].slice.call(arguments);
-                    args.unshift.apply(args, bound.map((function (arg) {
+                    args.unshift.apply(args, bound.map(function (arg) {
                         return arg === Seq ? this : arg
-                    }).bind(this)));
+                    }, this));
                     
                     cb.apply(this, args);
                 }, function () {
@@ -127,9 +127,9 @@ function builder (saw, xs) {
         }
         var cb_ = function () {
             var args = [].slice.call(arguments);
-            args.unshift.apply(args, bound.map((function (arg) {
+            args.unshift.apply(args, bound.map(function (arg) {
                 return arg === Seq ? this : arg
-            }).bind(this)));
+            }, this));
             
             cb.apply(this, args);
         };
@@ -154,7 +154,7 @@ function builder (saw, xs) {
         saw.next();
     };
     
-    [ 'seq', 'par' ].forEach((function (name) {
+    [ 'seq', 'par' ].forEach(function (name) {
         this[name + '_'] = function (key) {
             var args = [].slice.call(arguments);
             
@@ -176,7 +176,7 @@ function builder (saw, xs) {
             
             this[name].apply(this, args);
         };
-    }).bind(this));
+    }, this);
     
     this['catch'] = function (cb) {
         if (context.error) {
@@ -288,7 +288,7 @@ function builder (saw, xs) {
     };
     
     [ 'forEach', 'seqEach', 'parEach', 'seqMap', 'parMap' ]
-        .forEach((function (name) {
+        .forEach(function (name) {
             this[name + '_'] = function (cb) {
                 this[name].call(this, function () {
                     var args = [].slice.call(arguments);
@@ -296,11 +296,11 @@ function builder (saw, xs) {
                     cb.apply(this, args);
                 });
             };
-        }).bind(this))
+        }, this)
     ;
     
     ['push','pop','shift','unshift','splice']
-        .forEach((function (name) {
+        .forEach(function (name) {
             this[name] = function () {
                 context.stack[name].apply(
                     context.stack,
@@ -309,7 +309,7 @@ function builder (saw, xs) {
                 saw.next();
                 return this;
             };
-        }).bind(this))
+        }, this)
     ;
     
     this.extend = function (xs) {
@@ -333,13 +333,18 @@ function builder (saw, xs) {
         saw.next();
     };
     
+    this.unflatten = function () {
+        context.stack = [context.stack];
+        saw.next();
+    };
+    
     this.empty = function () {
         context.stack = [];
         saw.next();
     };
     
-    this.set = function () {
-        context.stack = [].slice.call(arguments);
+    this.set = function (stack) {
+        context.stack = stack;
         saw.next();
     };
     
