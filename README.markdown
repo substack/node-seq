@@ -229,6 +229,12 @@ flatten(fully=true)
 Recursively flatten all the arrays in the stack. Set `fully=false` to flatten
 only one level.
 
+unflatten()
+-----------
+
+Turn the contents of the stack into a single array item. You can think of it
+as the inverse of `flatten(false)`.
+
 extend([x,y...])
 ----------------
 
