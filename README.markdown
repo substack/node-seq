@@ -13,23 +13,25 @@ Examples
 stat_all.js
 -----------
 
-    var fs = require('fs');
-    var Hash = require('hashish');
-    var Seq = require('seq');
-    
-    Seq()
-        .seq(function () {
-            fs.readdir(__dirname, this);
-        })
-        .flatten()
-        .parEach(function (file) {
-            fs.stat(__dirname + '/' + file, this.into(file));
-        })
-        .seq(function () {
-            var sizes = Hash.map(this.vars, function (s) { return s.size })
-            console.dir(sizes);
-        })
-    ;
+````javascript
+var fs = require('fs');
+var Hash = require('hashish');
+var Seq = require('seq');
+
+Seq()
+    .seq(function () {
+        fs.readdir(__dirname, this);
+    })
+    .flatten()
+    .parEach(function (file) {
+        fs.stat(__dirname + '/' + file, this.into(file));
+    })
+    .seq(function () {
+        var sizes = Hash.map(this.vars, function (s) { return s.size })
+        console.dir(sizes);
+    })
+;
+````
 
 Output:
 
@@ -38,25 +40,27 @@ Output:
 parseq.js
 ---------
 
-    var fs = require('fs');
-    var exec = require('child_process').exec;
-    
-    var Seq = require('seq');
-    Seq()
-        .seq(function () {
-            exec('whoami', this)
-        })
-        .par(function (who) {
-            exec('groups ' + who, this);
-        })
-        .par(function (who) {
-            fs.readFile(__filename, 'ascii', this);
-        })
-        .seq(function (groups, src) {
-            console.log('Groups: ' + groups.trim());
-            console.log('This file has ' + src.length + ' bytes');
-        })
-    ;
+````javascript
+var fs = require('fs');
+var exec = require('child_process').exec;
+
+var Seq = require('seq');
+Seq()
+    .seq(function () {
+        exec('whoami', this)
+    })
+    .par(function (who) {
+        exec('groups ' + who, this);
+    })
+    .par(function (who) {
+        fs.readFile(__filename, 'ascii', this);
+    })
+    .seq(function (groups, src) {
+        console.log('Groups: ' + groups.trim());
+        console.log('This file has ' + src.length + ' bytes');
+    })
+;
+````
 
 Output:
 
@@ -74,25 +78,18 @@ propagates down to the first `catch` it sees, skipping over all actions in
 between. There is an implicit `catch` at the end of all chains that prints the
 error stack if available and otherwise just prints the error.
 
-Seq()
------
-Seq(x, y...)
-------------
+Seq(xs=[])
+----------
 
 The constructor function creates a new `Seq` chain with the methods described
-below. The optional arguments given become the new context stack.
+below. The optional array argument becomes the new context stack.
 
-Seq.ap([x, y...])
------------------
+Array argument is new in 0.3. `Seq()` now behaves like `Seq.ap()`.
 
-Exactly like `Seq(x, y...)` or `Seq().extend([x,y...])`.
-This is just another handy way for populating the stack.
-The `ap` is short for `apply`.
-
-seq(cb)
--------
-seq(key, cb, *args)
--------------------
+.seq(cb)
+--------
+.seq(key, cb, *args)
+--------------------
 
 This eponymous function executes actions sequentially.
 Once all running parallel actions are finished executing,
@@ -110,16 +107,19 @@ All arguments after `cb` will be bound to `cb`, which is useful because
 `.bind()` makes you set `this`. If you pass in `Seq` in the arguments list,
 it'll get transformed into `this` so that you can do:
 
-    Seq()
-        .seq(fs.readdir, __dirname, Seq)
-        .seq(function (files) { console.dir(files) })
-    ;
+````javascript
+Seq()
+    .seq(fs.readdir, __dirname, Seq)
+    .seq(function (files) { console.dir(files) })
+;
+````
+
 which prints an array of files in `__dirname`.
 
-par(cb)
--------
-par(key, cb, *args)
-------------
+.par(cb)
+--------
+.par(key, cb, *args)
+--------------------
 
 Use `par` to execute actions in parallel.
 Chain multiple parallel actions together and collect all the responses on the
@@ -140,8 +140,8 @@ All arguments after `cb` will be bound to `cb`, which is useful because
 `.bind()` makes you set `this`. Like `.seq()`, you can pass along `Seq` in these
 bound arguments and it will get tranformed into `this`.
 
-catch(cb)
----------
+.catch(cb)
+----------
 
 Catch errors. Whenever a function calls `this` with a non-falsy first argument,
 the message propagates down the chain to the first `catch` it sees.
@@ -155,12 +155,14 @@ the `catch` is skipped over.
 For convenience, there is a default error handler at the end of all chains.
 This default error handler looks like this:
 
-    .catch(function (err) {
-        console.error(err.stack ? err.stack : err)
-    })
+````javascript
+.catch(function (err) {
+    console.error(err.stack ? err.stack : err)
+})
+````
 
-forEach(cb)
------------
+.forEach(cb)
+------------
 
 Execute each action in the stack under the context of the chain object.
 `forEach` does not wait for any of the actions to finish and does not itself
@@ -173,8 +175,8 @@ index.
 `forEach` is a sequential operation like `seq` and won't run until all pending
 parallel requests yield results.
 
-seqEach(cb)
------------
+.seqEach(cb)
+------------
 
 Like `forEach`, call `cb` for each element on the stack, but unlike `forEach`,
 `seqEach` waits for the callback to yield with `this` before moving on to the
@@ -186,10 +188,10 @@ index.
 If `this()` is supplied non-falsy error, the error propagates downward but any
 other arguments are ignored. `seqEach` does not modify the stack itself.
 
-parEach(cb)
------------
-parEach(limit, cb)
-------------------
+.parEach(cb)
+------------
+.parEach(limit, cb)
+-------------------
 
 Like `forEach`, calls cb for each element in the stack and doesn't wait for the
 callback to yield a result with `this()` before moving on to the next iteration.
@@ -205,53 +207,53 @@ propagate.
 Optionally, if limit is supplied to `parEach`, at most `limit` callbacks will be
 active at a time.
 
-seqMap(cb)
-----------
+.seqMap(cb)
+-----------
 
 Like `seqEach`, but collect the values supplied to `this` and set the stack to
 these values.
 
-parMap(cb)
-----------
-parMap(limit, cb)
------------------
+.parMap(cb)
+-----------
+.parMap(limit, cb)
+------------------
 
 Like `parEach`, but collect the values supplied to `this` and set the stack to
 these values.
 
-do(cb)
-------
+.do(cb)
+-------
 Create a new nested context. `cb`'s first argument is the previous context.
 
-flatten(fully=true)
--------------------
+.flatten(fully=true)
+--------------------
 
 Recursively flatten all the arrays in the stack. Set `fully=false` to flatten
 only one level.
 
-unflatten()
------------
+.unflatten()
+------------
 
 Turn the contents of the stack into a single array item. You can think of it
 as the inverse of `flatten(false)`.
 
-extend([x,y...])
-----------------
+.extend([x,y...])
+-----------------
 
 Like `push`, but takes an array. This is like python's `[].extend()`.
 
-set([x,y...])
--------------
+.set(xs)
+--------
 
 Set the stack to a new array.
 
-empty()
--------
+.empty()
+--------
 
 Set the stack to [].
 
-push(x,y...), pop(), shift(), unshift(x), splice(...)
------------------------------------------------------
+.push(x,y...), .pop(), .shift(), .unshift(x), .splice(...)
+----------------------------------------------------------
 
 Executes an array operation on the stack.
 
@@ -324,6 +326,7 @@ Installation
 ============
 
 With [npm](http://github.com/isaacs/npm), just do:
+
     npm install seq
 
 or clone this project on github:
