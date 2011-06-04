@@ -6,7 +6,7 @@ exports.seq_ = function () {
         assert.fail('never got to the end of the chain');
     }, 5000);
     
-    Seq('xxx')
+    Seq(['xxx'])
         .seq_('pow', function (next, x) {
             assert.eql(next, this);
             assert.eql(x, 'xxx');
@@ -48,7 +48,7 @@ exports.forEach_ = function () {
     }, 5000);
     
     var acc = [];
-    Seq(7, 8, 9)
+    Seq([7,8,9])
         .forEach_(function (next, x) {
             assert.eql(next, this);
             acc.push(x);
@@ -66,7 +66,7 @@ exports.seqEach_ = function () {
     }, 5000);
     
     var acc = [];
-    Seq(7, 8, 9)
+    Seq([7,8,9])
         .seqEach_(function (next, x) {
             assert.eql(next, this);
             acc.push(x);
@@ -88,7 +88,7 @@ exports.parEach_ = function () {
     }, 5000);
     
     var acc = [];
-    Seq(7, 8, 9)
+    Seq([7,8,9])
         .parEach_(function (next, x) {
             assert.eql(next, this);
             acc.push(x);
@@ -110,7 +110,7 @@ exports.seqMap_ = function () {
     }, 5000);
     
     var acc = [];
-    Seq(7, 8, 9)
+    Seq([7,8,9])
         .seqMap_(function (next, x) {
             assert.eql(next, this);
             acc.push(x);
@@ -132,7 +132,7 @@ exports.parMap_ = function () {
     }, 5000);
     
     var acc = [];
-    Seq(7, 8, 9)
+    Seq([7,8,9])
         .parMap_(function (next, x) {
             assert.eql(next, this);
             acc.push(x);
