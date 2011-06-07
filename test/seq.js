@@ -725,3 +725,29 @@ exports.ok = function () {
         })
     ;
 };
+
+exports.nextOk = function () {
+    var to = setTimeout(function () {
+        assert.fail('seq never fired');
+    }, 500);
+    
+    function moo1 (cb) { cb(3) }
+    function moo2 (cb) { cb(4) }
+    
+    Seq()
+        .par_(function (next) { moo1(next.ok) })
+        .par_(function (next) { moo2(next.ok) })
+        .seq_(function (next, x, y) {
+            assert.eql(x, 3);
+            assert.eql(y, 4);
+            next.ok([ 1, 2, 3 ])
+        })
+        .parMap_(function (next, x) {
+            next.ok(x * 100)
+        })
+        .seq(function (next) {
+            clearTimeout(to);
+            assert.equal(next.stack, [ 100, 200, 300 ]);
+        })
+    ;
+};
