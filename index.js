@@ -266,13 +266,24 @@ function builder (saw, xs) {
                     self.apply(self, arguments);
                 };
                 
+                next.stack = self.stack;
+                next.stack_ = self.stack_;
+                next.vars = self.vars;
+                next.args = self.args;
+                next.error = self.error;
+                
+                next.into = function (key) {
+                    return function () {
+                        res[key] = arguments[1];
+                        self.apply(self, arguments);
+                    };
+                };
+                
                 next.ok = function () {
                     var args = [].slice.call(arguments);
                     args.unshift(null);
                     return next.apply(next, args);
                 };
-                
-                next.stack = self.stack;
                 
                 cb.apply(next, arguments);
             })
@@ -288,12 +299,34 @@ function builder (saw, xs) {
         var len = context.stack.length;
         
         this.seqEach(function (x, i) {
-            var self = (function () {
+            var self = this;
+            
+            var next = function () {
                 res[i] = arguments[1];
                 if (i == len - 1) context.stack = res;
-                this.apply(this, arguments);
-            }).bind(this);
-            cb.apply(self, arguments);
+                self.apply(self, arguments);
+            };
+            
+            next.stack = self.stack;
+            next.stack_ = self.stack_;
+            next.vars = self.vars;
+            next.args = self.args;
+            next.error = self.error;
+            
+            next.into = function (key) {
+                return function () {
+                    res[key] = arguments[1];
+                    self.apply(self, arguments);
+                };
+            };
+            
+            next.ok = function () {
+                var args = [].slice.call(arguments);
+                args.unshift(null);
+                return next.apply(next, args);
+            };
+            
+            cb.apply(next, arguments);
         });
     };
     
