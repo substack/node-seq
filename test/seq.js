@@ -742,12 +742,13 @@ exports.nextOk = function () {
             assert.eql(y, 4);
             next.ok([ 1, 2, 3 ])
         })
+        .flatten()
         .parMap_(function (next, x) {
             next.ok(x * 100)
         })
-        .seq(function (next) {
+        .seq_(function (next) {
             clearTimeout(to);
-            assert.equal(next.stack, [ 100, 200, 300 ]);
+            assert.deepEqual(next.stack, [ 100, 200, 300 ]);
         })
     ;
 };

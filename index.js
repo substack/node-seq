@@ -259,10 +259,22 @@ function builder (saw, xs) {
         Seq()
             .extend(context.stack)
             .parEach(limit, function (x, i) {
-                cb.apply((function () {
+                var self = this;
+                
+                var next = function () {
                     res[i] = arguments[1];
-                    this.apply(this, arguments);
-                }).bind(this), arguments);
+                    self.apply(self, arguments);
+                };
+                
+                next.ok = function () {
+                    var args = [].slice.call(arguments);
+                    args.unshift(null);
+                    return next.apply(next, args);
+                };
+                
+                next.stack = self.stack;
+                
+                cb.apply(next, arguments);
             })
             .seq(function () {
                 context.stack = res;
