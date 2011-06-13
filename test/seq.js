@@ -752,3 +752,28 @@ exports.nextOk = function () {
         })
     ;
 };
+
+exports.regressionTestForAccidentalDeepTraversalOfTheContext = function () {
+    // Create a single-item stack with a bunch of references to other objects:
+    var stack = [{}];
+    for (var i = 0 ; i < 10000 ; i += 1) {
+        stack[0][i] = stack[0];
+    }
+
+    var startTime = new Date(),
+        numCalled = 0,
+        to = setTimeout(function () {
+            assert.fail('never got to the end of the chain');
+        }, 1000);
+
+    Seq(stack)
+        .parEach(function (item) {
+            numCalled += 1;
+            this();
+        })
+        .seq(function () {
+            clearTimeout(to);
+            assert.eql(numCalled, 1);
+            assert.ok((new Date().getTime() - startTime) < 1000, 'if this test takes longer than a second, the bug must have been reintroduced');
+        });
+};
