@@ -23,7 +23,7 @@ function Seq (xs) {
 Seq.ap = Seq; // for compatability with versions <0.3
 
 function builder (saw, xs) {
-    var context = this.context = {
+    var context = {
         vars : {},
         args : {},
         stack : xs,
