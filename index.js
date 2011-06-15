@@ -27,7 +27,7 @@ function builder (saw, xs) {
         vars : {},
         args : {},
         stack : xs,
-        error : null,
+        error : null
     };
     context.stack_ = context.stack;
     
