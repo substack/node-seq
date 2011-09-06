@@ -296,14 +296,15 @@ function builder (saw, xs) {
     
     this.seqMap = function (cb) {
         var res = [];
-        var len = context.stack.length;
+        var lastIdx = context.stack.length - 1;
         
         this.seqEach(function (x, i) {
             var self = this;
             
             var next = function () {
                 res[i] = arguments[1];
-                if (i == len - 1) context.stack = res;
+                if (i === lastIdx)
+                    context.stack = res;
                 self.apply(self, arguments);
             };
             
@@ -316,6 +317,8 @@ function builder (saw, xs) {
             next.into = function (key) {
                 return function () {
                     res[key] = arguments[1];
+                    if (i === lastIdx)
+                        context.stack = res;
                     self.apply(self, arguments);
                 };
             };

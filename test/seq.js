@@ -457,6 +457,24 @@ exports.parMapFast = function () {
     ;
 };
 
+exports.parMapInto = function () {
+    var to = setTimeout(function () {
+        assert.fail('never finished');
+    }, 500);
+    
+    var values = [];
+    Seq([1,2,3,4,5,6,7,8,9,10])
+        .parMap(function (x, i) {
+            this.into(9 - i)(null, x * 10);
+        })
+        .seq(function () {
+            clearTimeout(to);
+            assert.eql(this.stack, [100, 90, 80, 70, 60, 50, 40, 30, 20, 10]);
+            assert.eql(this.stack, [].slice.call(arguments));
+        })
+    ;
+};
+
 exports.seqMap = function () {
     var to = setTimeout(function () {
         assert.fail('never finished');
@@ -478,6 +496,31 @@ exports.seqMap = function () {
         .seq(function () {
             clearTimeout(to);
             assert.eql(this.stack, [10,20,30,40,50,60,70,80,90,100]);
+        })
+    ;
+};
+
+exports.seqMapInto = function () {
+    var to = setTimeout(function () {
+        assert.fail('never finished');
+    }, 500);
+    
+    var running = 0;
+    var values = [];
+    Seq([1,2,3,4,5,6,7,8,9,10])
+        .seqMap(function (x, i) {
+            running ++;
+            
+            assert.eql(running, 1);
+            
+            setTimeout((function () {
+                running --;
+                this.into(9 - i)(null, x * 10);
+            }).bind(this), 10);
+        })
+        .seq(function () {
+            clearTimeout(to);
+            assert.eql(this.stack, [100, 90, 80, 70, 60, 50, 40, 30, 20, 10]);
         })
     ;
 };
