@@ -252,10 +252,35 @@ Set the stack to a new array.
 
 Set the stack to [].
 
-.push(x,y...), .pop(), .shift(), .unshift(x), .splice(...)
-----------------------------------------------------------
+.push(x,y...), .pop(), .shift(), .unshift(x), .splice(...), reverse()
+---------------------------------------------------------------------
+.map(...), .filter(...), .reduce(...)
+-------------------------------------
 
 Executes an array operation on the stack.
+
+The methods `map`, `filter`, and `reduce` are also proxies to their Array counterparts:
+they have identical signatures to the Array methods, operate synchronously on the context
+stack, and do not pass a Context object (unlike `seqMap` and `parMap`).
+
+The result of the transformation is assigned to the context stack; in the case of `reduce`,
+if you do not return an array, the value will be wrapped in one.
+
+````javascript
+Seq([1, 2, 3])
+    .reduce(function(sum, x){ return sum + x; }, 0)
+    .seq(function(sum){
+        console.log('sum: %s', sum);
+        // sum: 6
+        console.log('stack is Array?', Array.isArray(this.stack));
+        // stack is Array: true
+        console.log('stack:', this.stack);
+        // stack: [6]
+    })
+;
+````
+
+
 
 Explicit Parameters
 ===================

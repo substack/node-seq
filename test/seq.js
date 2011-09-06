@@ -169,10 +169,10 @@ exports.catchParMultipleErrors = function() {
     
     Seq()
         .par('one', function() {
-            setTimeout(this.bind({}, 'rawr1'), 25);            
+            setTimeout(this.bind({}, 'rawr1'), 25);
         })
         .par('two', function() {
-            setTimeout(this.bind({}, 'rawr2'), 50);            
+            setTimeout(this.bind({}, 'rawr2'), 50);
         })
         .catch(function(err,key) {
             caught[key] = err;
@@ -551,7 +551,28 @@ exports.stack = function () {
             assert.eql(arguments.length, 3);
             assert.eql([a,b,e], ['a','b','e']);
             assert.eql(this.stack, ['a','b','e']);
-            this(null);
+            this.pass(null);
+        })
+        .reverse()
+        .seq(function (a, b, e){
+            assert.eql(arguments.length, 3);
+            assert.eql([a,b,e], ['e','b','a']);
+            assert.eql(this.stack, ['e','b','a']);
+            this.pass(null);
+        })
+        .map(function(ch){ return ch.toUpperCase(); })
+        .seq(function (A, B, E){
+            assert.eql(arguments.length, 3);
+            assert.eql([A,B,E], ['E','B','A']);
+            assert.eql(this.stack, ['E','B','A']);
+            this.pass(null);
+        })
+        .reduce(function(s, ch){ return s + ':' + ch; })
+        .seq(function (acc){
+            assert.eql(arguments.length, 1);
+            assert.eql(acc, 'E:B:A');
+            assert.eql(this.stack, ['E:B:A']);
+            this.pass(null);
         })
         .seq(function () {
             clearTimeout(to);

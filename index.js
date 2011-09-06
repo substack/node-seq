@@ -342,13 +342,28 @@ function builder (saw, xs) {
         }, this)
     ;
     
-    ['push','pop','shift','unshift','splice']
+    ['push','pop','shift','unshift','splice','reverse']
         .forEach(function (name) {
             this[name] = function () {
                 context.stack[name].apply(
                     context.stack,
                     [].slice.call(arguments)
                 );
+                saw.next();
+                return this;
+            };
+        }, this)
+    ;
+    
+    [ 'map', 'filter', 'reduce' ]
+        .forEach(function (name) {
+            this[name] = function () {
+                var res = context.stack[name].apply(
+                    context.stack,
+                    [].slice.call(arguments)
+                );
+                // stack must be an array, or bad things happen
+                context.stack = (Array.isArray(res) ? res : [res]);
                 saw.next();
                 return this;
             };
