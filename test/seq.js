@@ -500,6 +500,7 @@ exports.seqMap = function () {
     ;
 };
 
+
 exports.seqMapInto = function () {
     var to = setTimeout(function () {
         assert.fail('never finished');
@@ -521,6 +522,108 @@ exports.seqMapInto = function () {
         .seq(function () {
             clearTimeout(to);
             assert.eql(this.stack, [100, 90, 80, 70, 60, 50, 40, 30, 20, 10]);
+        })
+    ;
+};
+
+exports.parFilter = function () {
+    var to = setTimeout(function () {
+        assert.fail('never finished');
+    }, 500);
+    
+    var running = 0;
+    var values = [];
+    Seq([1,2,3,4,5,6,7,8,9,10])
+        .parFilter(2, function (x, i) {
+            running ++;
+            
+            assert.ok(running <= 2);
+            
+            setTimeout((function () {
+                running --;
+                this(null, x % 2 === 0);
+            }).bind(this), Math.floor(Math.random() * 100));
+        })
+        .seq(function () {
+            clearTimeout(to);
+            assert.eql(this.stack, [2,4,6,8,10]);
+            assert.eql(this.stack, [].slice.call(arguments));
+        })
+    ;
+};
+
+exports.seqFilter = function () {
+    var to = setTimeout(function () {
+        assert.fail('never finished');
+    }, 500);
+    
+    var running = 0;
+    var values = [];
+    Seq([1,2,3,4,5,6,7,8,9,10])
+        .seqFilter(function (x, i) {
+            running ++;
+            
+            assert.eql(running, 1);
+            
+            setTimeout((function () {
+                running --;
+                this(null, x % 2 === 0);
+            }).bind(this), 10);
+        })
+        .seq(function () {
+            clearTimeout(to);
+            assert.eql(this.stack, [2,4,6,8,10]);
+        })
+    ;
+};
+
+exports.parFilterInto = function () {
+    var to = setTimeout(function () {
+        assert.fail('never finished');
+    }, 500);
+    
+    var running = 0;
+    var values = [];
+    Seq([1,2,3,4,5,6,7,8,9,10])
+        .parFilter(2, function (x, i) {
+            running ++;
+            
+            assert.ok(running <= 2);
+            
+            setTimeout((function () {
+                running --;
+                this.into(x % 3)(null, x % 2 === 0);
+            }).bind(this), Math.floor(Math.random() * 100));
+        })
+        .seq(function () {
+            clearTimeout(to);
+            assert.eql(this.stack, [ 6, 10, 4, 2, 8 ]);
+            assert.eql(this.stack, [].slice.call(arguments));
+        })
+    ;
+};
+
+exports.seqFilterInto = function () {
+    var to = setTimeout(function () {
+        assert.fail('never finished');
+    }, 500);
+    
+    var running = 0;
+    var values = [];
+    Seq([1,2,3,4,5,6,7,8,9,10])
+        .seqFilter(function (x, i) {
+            running ++;
+            
+            assert.eql(running, 1);
+            
+            setTimeout((function () {
+                running --;
+                this.into(x % 3)(null, x % 2 === 0);
+            }).bind(this), 10);
+        })
+        .seq(function () {
+            clearTimeout(to);
+            assert.eql(this.stack, [ 6, 10, 4, 2, 8 ]);
         })
     ;
 };
