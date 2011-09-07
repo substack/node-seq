@@ -169,10 +169,10 @@ exports.catchParMultipleErrors = function() {
     
     Seq()
         .par('one', function() {
-            setTimeout(this.bind({}, 'rawr1'), 25);            
+            setTimeout(this.bind({}, 'rawr1'), 25);
         })
         .par('two', function() {
-            setTimeout(this.bind({}, 'rawr2'), 50);            
+            setTimeout(this.bind({}, 'rawr2'), 50);
         })
         .catch(function(err,key) {
             caught[key] = err;
@@ -457,6 +457,24 @@ exports.parMapFast = function () {
     ;
 };
 
+exports.parMapInto = function () {
+    var to = setTimeout(function () {
+        assert.fail('never finished');
+    }, 500);
+    
+    var values = [];
+    Seq([1,2,3,4,5,6,7,8,9,10])
+        .parMap(function (x, i) {
+            this.into(9 - i)(null, x * 10);
+        })
+        .seq(function () {
+            clearTimeout(to);
+            assert.eql(this.stack, [100, 90, 80, 70, 60, 50, 40, 30, 20, 10]);
+            assert.eql(this.stack, [].slice.call(arguments));
+        })
+    ;
+};
+
 exports.seqMap = function () {
     var to = setTimeout(function () {
         assert.fail('never finished');
@@ -478,6 +496,134 @@ exports.seqMap = function () {
         .seq(function () {
             clearTimeout(to);
             assert.eql(this.stack, [10,20,30,40,50,60,70,80,90,100]);
+        })
+    ;
+};
+
+
+exports.seqMapInto = function () {
+    var to = setTimeout(function () {
+        assert.fail('never finished');
+    }, 500);
+    
+    var running = 0;
+    var values = [];
+    Seq([1,2,3,4,5,6,7,8,9,10])
+        .seqMap(function (x, i) {
+            running ++;
+            
+            assert.eql(running, 1);
+            
+            setTimeout((function () {
+                running --;
+                this.into(9 - i)(null, x * 10);
+            }).bind(this), 10);
+        })
+        .seq(function () {
+            clearTimeout(to);
+            assert.eql(this.stack, [100, 90, 80, 70, 60, 50, 40, 30, 20, 10]);
+        })
+    ;
+};
+
+exports.parFilter = function () {
+    var to = setTimeout(function () {
+        assert.fail('never finished');
+    }, 500);
+    
+    var running = 0;
+    var values = [];
+    Seq([1,2,3,4,5,6,7,8,9,10])
+        .parFilter(2, function (x, i) {
+            running ++;
+            
+            assert.ok(running <= 2);
+            
+            setTimeout((function () {
+                running --;
+                this(null, x % 2 === 0);
+            }).bind(this), Math.floor(Math.random() * 100));
+        })
+        .seq(function () {
+            clearTimeout(to);
+            assert.eql(this.stack, [2,4,6,8,10]);
+            assert.eql(this.stack, [].slice.call(arguments));
+        })
+    ;
+};
+
+exports.seqFilter = function () {
+    var to = setTimeout(function () {
+        assert.fail('never finished');
+    }, 500);
+    
+    var running = 0;
+    var values = [];
+    Seq([1,2,3,4,5,6,7,8,9,10])
+        .seqFilter(function (x, i) {
+            running ++;
+            
+            assert.eql(running, 1);
+            
+            setTimeout((function () {
+                running --;
+                this(null, x % 2 === 0);
+            }).bind(this), 10);
+        })
+        .seq(function () {
+            clearTimeout(to);
+            assert.eql(this.stack, [2,4,6,8,10]);
+        })
+    ;
+};
+
+exports.parFilterInto = function () {
+    var to = setTimeout(function () {
+        assert.fail('never finished');
+    }, 500);
+    
+    var running = 0;
+    var values = [];
+    Seq([1,2,3,4,5,6,7,8,9,10])
+        .parFilter(2, function (x, i) {
+            running ++;
+            
+            assert.ok(running <= 2);
+            
+            setTimeout((function () {
+                running --;
+                this.into(x % 3)(null, x % 2 === 0);
+            }).bind(this), Math.floor(Math.random() * 100));
+        })
+        .seq(function () {
+            clearTimeout(to);
+            assert.eql(this.stack, [ 6, 10, 4, 2, 8 ]);
+            assert.eql(this.stack, [].slice.call(arguments));
+        })
+    ;
+};
+
+exports.seqFilterInto = function () {
+    var to = setTimeout(function () {
+        assert.fail('never finished');
+    }, 500);
+    
+    var running = 0;
+    var values = [];
+    Seq([1,2,3,4,5,6,7,8,9,10])
+        .seqFilter(function (x, i) {
+            running ++;
+            
+            assert.eql(running, 1);
+            
+            setTimeout((function () {
+                running --;
+                this.into(x % 3)(null, x % 2 === 0);
+            }).bind(this), 10);
+        })
+        .seq(function () {
+            clearTimeout(to);
+            assert.eql(this.stack, [ 6, 10, 4, 2, 8 ]);
         })
     ;
 };
@@ -551,7 +697,28 @@ exports.stack = function () {
             assert.eql(arguments.length, 3);
             assert.eql([a,b,e], ['a','b','e']);
             assert.eql(this.stack, ['a','b','e']);
-            this(null);
+            this.pass(null);
+        })
+        .reverse()
+        .seq(function (a, b, e){
+            assert.eql(arguments.length, 3);
+            assert.eql([a,b,e], ['e','b','a']);
+            assert.eql(this.stack, ['e','b','a']);
+            this.pass(null);
+        })
+        .map(function(ch){ return ch.toUpperCase(); })
+        .seq(function (A, B, E){
+            assert.eql(arguments.length, 3);
+            assert.eql([A,B,E], ['E','B','A']);
+            assert.eql(this.stack, ['E','B','A']);
+            this.pass(null);
+        })
+        .reduce(function(s, ch){ return s + ':' + ch; })
+        .seq(function (acc){
+            assert.eql(arguments.length, 1);
+            assert.eql(acc, 'E:B:A');
+            assert.eql(this.stack, ['E:B:A']);
+            this.pass(null);
         })
         .seq(function () {
             clearTimeout(to);

@@ -7,6 +7,10 @@ sequential and parallel actions. Even the error handling is chainable.
 Each action in the chain operates on a stack of values.
 There is also a variables hash for storing values by name.
 
+[TOC]
+
+
+
 Examples
 ========
 
@@ -67,8 +71,11 @@ Output:
     Groups: substack : substack dialout cdrom floppy audio src video plugdev games netdev fuse www
     This file has 464 bytes
 
-Methods
-=======
+
+
+
+API
+===
 
 Each method executes callbacks with a context (its `this`) described in the next
 section. Every method returns `this`.
@@ -78,6 +85,8 @@ propagates down to the first `catch` it sees, skipping over all actions in
 between. There is an implicit `catch` at the end of all chains that prints the
 error stack if available and otherwise just prints the error.
 
+
+
 Seq(xs=[])
 ----------
 
@@ -85,6 +94,7 @@ The constructor function creates a new `Seq` chain with the methods described
 below. The optional array argument becomes the new context stack.
 
 Array argument is new in 0.3. `Seq()` now behaves like `Seq.ap()`.
+
 
 .seq(cb)
 --------
@@ -116,6 +126,7 @@ Seq()
 
 which prints an array of files in `__dirname`.
 
+
 .par(cb)
 --------
 .par(key, cb, *args)
@@ -140,6 +151,7 @@ All arguments after `cb` will be bound to `cb`, which is useful because
 `.bind()` makes you set `this`. Like `.seq()`, you can pass along `Seq` in these
 bound arguments and it will get tranformed into `this`.
 
+
 .catch(cb)
 ----------
 
@@ -161,6 +173,7 @@ This default error handler looks like this:
 })
 ````
 
+
 .forEach(cb)
 ------------
 
@@ -175,6 +188,7 @@ index.
 `forEach` is a sequential operation like `seq` and won't run until all pending
 parallel requests yield results.
 
+
 .seqEach(cb)
 ------------
 
@@ -187,6 +201,7 @@ index.
 
 If `this()` is supplied non-falsy error, the error propagates downward but any
 other arguments are ignored. `seqEach` does not modify the stack itself.
+
 
 .parEach(cb)
 ------------
@@ -207,11 +222,13 @@ propagate.
 Optionally, if limit is supplied to `parEach`, at most `limit` callbacks will be
 active at a time.
 
+
 .seqMap(cb)
 -----------
 
 Like `seqEach`, but collect the values supplied to `this` and set the stack to
 these values.
+
 
 .parMap(cb)
 -----------
@@ -221,9 +238,50 @@ these values.
 Like `parEach`, but collect the values supplied to `this` and set the stack to
 these values.
 
+
+.seqFilter(cb)
+-----------
+
+Executes the callback `cb(x, idx)` against each element on the stack, waiting for the
+callback to yield with `this` before moving on to the next element. If the callback 
+returns an error or a falsey value, the element will not be included in the resulting
+stack.
+
+Any errors from the callback are consumed and **do not** propagate.
+
+Calls to `this.into(i)` will place the value, if accepted by the callback, at the index in
+the results as if it were ordered at i-th index on the stack before filtering (with ties
+broken by the values). This implies `this.into` will never override another stack value
+even if their indices collide. Finally, the value will only actually appear at `i` if the
+callback accepts or moves enough values before `i`.
+
+
+.parFilter(cb)
+-----------
+.parFilter(limit, cb)
+------------------
+
+Executes the callback `cb(x, idx)` against each element on the stack, but **does not**
+wait for it to yield before moving on to the next element. If the callback returns an
+error or a falsey value, the element will not be included in the resulting stack.
+
+Any errors from the callback are consumed and **do not** propagate.
+
+Calls to `this.into(i)` will place the value, if accepted by the callback, at the index in
+the results as if it were ordered at i-th index on the stack before filtering (with ties
+broken by the values). This implies `this.into` will never override another stack value
+even if their indices collide. Finally, the value will only actually appear at `i` if the
+callback accepts or moves enough values before `i`.
+
+Optionally, if limit is supplied to `parEach`, at most `limit` callbacks will be
+active at a time.
+
+
 .do(cb)
 -------
-Create a new nested context. `cb`'s first argument is the previous context.
+Create a new nested context. `cb`'s first argument is the previous context, and `this`
+is the nested `Seq` object.
+
 
 .flatten(fully=true)
 --------------------
@@ -231,34 +289,65 @@ Create a new nested context. `cb`'s first argument is the previous context.
 Recursively flatten all the arrays in the stack. Set `fully=false` to flatten
 only one level.
 
+
 .unflatten()
 ------------
 
 Turn the contents of the stack into a single array item. You can think of it
 as the inverse of `flatten(false)`.
 
+
 .extend([x,y...])
 -----------------
 
 Like `push`, but takes an array. This is like python's `[].extend()`.
 
+
 .set(xs)
 --------
 
-Set the stack to a new array.
+Set the stack to a new array. This assigns the reference, it does not copy.
+
 
 .empty()
 --------
 
 Set the stack to [].
 
-.push(x,y...), .pop(), .shift(), .unshift(x), .splice(...)
-----------------------------------------------------------
+
+.push(x,y...), .pop(), .shift(), .unshift(x), .splice(...), reverse()
+---------------------------------------------------------------------
+.map(...), .filter(...), .reduce(...)
+-------------------------------------
 
 Executes an array operation on the stack.
 
+The methods `map`, `filter`, and `reduce` are also proxies to their Array counterparts:
+they have identical signatures to the Array methods, operate synchronously on the context
+stack, and do not pass a Context object (unlike `seqMap` and `parMap`).
+
+The result of the transformation is assigned to the context stack; in the case of `reduce`,
+if you do not return an array, the value will be wrapped in one.
+
+````javascript
+Seq([1, 2, 3])
+    .reduce(function(sum, x){ return sum + x; }, 0)
+    .seq(function(sum){
+        console.log('sum: %s', sum);
+        // sum: 6
+        console.log('stack is Array?', Array.isArray(this.stack));
+        // stack is Array: true
+        console.log('stack:', this.stack);
+        // stack: [6]
+    })
+;
+````
+
+
+
+
 Explicit Parameters
-===================
+-------------------
 
 For environments like coffee-script or nested logic where threading `this` is
 bothersome, you can use:
@@ -274,8 +363,10 @@ bothersome, you can use:
 which work exactly like their un-underscored counterparts except for the first
 parameter to the supplied callback is set to the context, `this`.
 
-Context
-=======
+
+
+Context Object
+==============
 
 Each callback gets executed with its `this` set to a function in order to yield
 results, error values, and control. The function also has these useful fields:
@@ -322,6 +413,8 @@ this.error
 
 This is used for error propagation. You probably shouldn't mess with it.
 
+
+
 Installation
 ============
 
@@ -338,8 +431,12 @@ just do:
 
     expresso
 
+
+
 Dependencies
 ------------
 
 This module uses [chainsaw](http://github.com/substack/node-chainsaw)
 When you `npm install seq` this dependency will automatically be installed.
+
+

@@ -1,6 +1,6 @@
 {
     "name" : "seq",
-    "version" : "0.3.3",
+    "version" : "0.3.4",
     "description" : "Chainable asynchronous flow control with sequential and parallel primitives and pipeline-style error handling",
     "main" : "./index.js",
     "repository" : {
@@ -12,7 +12,7 @@
         "hashish" : ">=0.0.2 <0.1"
     },
     "devDependencies" : {
-        "expresso" : "=0.7.x"
+        "expresso" : ">=0.7.x"
     },
     "script" : {
         "test" : "expresso"

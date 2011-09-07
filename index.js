@@ -296,14 +296,15 @@ function builder (saw, xs) {
     
     this.seqMap = function (cb) {
         var res = [];
-        var len = context.stack.length;
+        var lastIdx = context.stack.length - 1;
         
         this.seqEach(function (x, i) {
             var self = this;
             
             var next = function () {
                 res[i] = arguments[1];
-                if (i == len - 1) context.stack = res;
+                if (i === lastIdx)
+                    context.stack = res;
                 self.apply(self, arguments);
             };
             
@@ -316,6 +317,8 @@ function builder (saw, xs) {
             next.into = function (key) {
                 return function () {
                     res[key] = arguments[1];
+                    if (i === lastIdx)
+                        context.stack = res;
                     self.apply(self, arguments);
                 };
             };
@@ -330,7 +333,112 @@ function builder (saw, xs) {
         });
     };
     
-    [ 'forEach', 'seqEach', 'parEach', 'seqMap', 'parMap' ]
+    /**
+     * Consumes any errors that occur in `cb`. Calls to `this.into(i)` will place
+     * that value, if accepted by the filter, at the index in the results as
+     * if it were the i-th index before filtering. (This means it will never 
+     * override another value, and will only actually appear at i if the filter
+     * accepts all values before i.)
+     */
+    this.parFilter = function (limit, cb) {
+        var res = [];
+        var len = context.stack.length;
+        if (cb === undefined) { cb = limit; limit = len }
+        var res = [];
+        
+        Seq()
+            .extend(context.stack)
+            .parEach(limit, function (x, i) {
+                var self = this;
+                
+                var next = function (err, ok) {
+                    if (!err && ok)
+                        res.push([i, x]);
+                    arguments[0] = null; // discard errors
+                    self.apply(self, arguments);
+                };
+                
+                next.stack = self.stack;
+                next.stack_ = self.stack_;
+                next.vars = self.vars;
+                next.args = self.args;
+                next.error = self.error;
+                
+                next.into = function (key) {
+                    return function (err, ok) {
+                        if (!err && ok)
+                            res.push([key, x]);
+                        arguments[0] = null; // discard errors
+                        self.apply(self, arguments);
+                    };
+                };
+                
+                next.ok = function () {
+                    var args = [].slice.call(arguments);
+                    args.unshift(null);
+                    return next.apply(next, args);
+                };
+                
+                cb.apply(next, arguments);
+            })
+            .seq(function () {
+                context.stack = res.sort().map(function(pair){ return pair[1]; });
+                saw.next();
+            })
+        ;
+    };
+    
+    /**
+     * Consumes any errors that occur in `cb`. Calls to `this.into(i)` will place
+     * that value, if accepted by the filter, at the index in the results as
+     * if it were the i-th index before filtering. (This means it will never 
+     * override another value, and will only actually appear at i if the filter
+     * accepts all values before i.)
+     */
+    this.seqFilter = function (cb) {
+        var res = [];
+        var lastIdx = context.stack.length - 1;
+        
+        this.seqEach(function (x, i) {
+            var self = this;
+            
+            var next = function (err, ok) {
+                if (!err && ok)
+                    res.push([i, x]);
+                if (i === lastIdx)
+                    context.stack = res.sort().map(function(pair){ return pair[1]; });
+                arguments[0] = null; // discard errors
+                self.apply(self, arguments);
+            };
+            
+            next.stack = self.stack;
+            next.stack_ = self.stack_;
+            next.vars = self.vars;
+            next.args = self.args;
+            next.error = self.error;
+            
+            next.into = function (key) {
+                return function (err, ok) {
+                    if (!err && ok)
+                        res.push([key, x]);
+                    if (i === lastIdx)
+                        context.stack = res.sort().map(function(pair){ return pair[1]; });
+                    arguments[0] = null; // discard errors
+                    self.apply(self, arguments);
+                };
+            };
+            
+            next.ok = function () {
+                var args = [].slice.call(arguments);
+                args.unshift(null);
+                return next.apply(next, args);
+            };
+            
+            cb.apply(next, arguments);
+        });
+    };
+    
+    [ 'forEach', 'seqEach', 'parEach', 'seqMap', 'parMap', 'seqFilter', 'parFilter' ]
         .forEach(function (name) {
             this[name + '_'] = function (cb) {
                 this[name].call(this, function () {
@@ -342,13 +450,28 @@ function builder (saw, xs) {
         }, this)
     ;
     
-    ['push','pop','shift','unshift','splice']
+    ['push','pop','shift','unshift','splice','reverse']
         .forEach(function (name) {
             this[name] = function () {
                 context.stack[name].apply(
                     context.stack,
                     [].slice.call(arguments)
                 );
+                saw.next();
+                return this;
+            };
+        }, this)
+    ;
+    
+    [ 'map', 'filter', 'reduce' ]
+        .forEach(function (name) {
+            this[name] = function () {
+                var res = context.stack[name].apply(
+                    context.stack,
+                    [].slice.call(arguments)
+                );
+                // stack must be an array, or bad things happen
+                context.stack = (Array.isArray(res) ? res : [res]);
                 saw.next();
                 return this;
             };
