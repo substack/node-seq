@@ -450,7 +450,7 @@ function builder (saw, xs) {
         }, this)
     ;
     
-    ['push','pop','shift','unshift','splice','reverse']
+    ['push','pop','shift','unshift','splice','slice','reverse']
         .forEach(function (name) {
             this[name] = function () {
                 context.stack[name].apply(
