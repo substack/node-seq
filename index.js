@@ -484,10 +484,28 @@ function builder (saw, xs) {
         });
     };
     
-    [ 'forEach', 'seqEach', 'parEach', 'seqMap', 'parMap', 'seqFilter', 'parFilter' ]
-        .forEach(function (name) {
-            this[name + '_'] = function (cb) {
-                this[name].call(this, function () {
+    [ 'forEach', 'Each', 'Map', 'Filter' ]
+        .forEach(function (name){
+            var isForEach = !!(name === 'forEach')
+            ,   method ;
+            
+            // the seq functions are straight-forward, other than skipping forEach
+            if (!isForEach) {
+                method = 'seq'+name;
+                this[method+'_'] = function (cb) {
+                    this[method].call(this, function () {
+                        var args = [].slice.call(arguments);
+                        args.unshift(this);
+                        cb.apply(this, args);
+                    });
+                };
+            }
+            
+            // ...but par functions (anything that takes limit+callback) needs special care
+            method = (isForEach ? name : 'par'+name);
+            this[method+'_'] = function (limit, cb) {
+                if (!cb) { cb = limit; limit = undefined; }
+                this[method].call(this, limit, function (){
                     var args = [].slice.call(arguments);
                     args.unshift(this);
                     cb.apply(this, args);

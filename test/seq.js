@@ -443,7 +443,7 @@ exports.parEachLimited = function () {
     ;
 };
 
-exports.parMap = function () {
+exports.parMapLimited = function () {
     var to = setTimeout(function () {
         assert.fail('never finished');
     }, 500);
@@ -556,7 +556,7 @@ exports.seqMapInto = function () {
     ;
 };
 
-exports.parFilter = function () {
+exports.parFilterLimited = function () {
     var to = setTimeout(function () {
         assert.fail('never finished');
     }, 500);

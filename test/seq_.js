@@ -60,6 +60,35 @@ exports.forEach_ = function () {
     ;
 };
 
+exports.forEachLimited_ = function () {
+    var to = setTimeout(function () {
+        assert.fail('never finished');
+    }, 500);
+    
+    var running = 0;
+    var values = [];
+    Seq([1,2,3,4,5,6,7,8,9,10])
+        .forEach_(3, function (next, x, i){
+            running++;
+            // console.log('['+i+'] started!  (running: '+running+', values=[['+values.join('],[')+']])');
+            assert.ok(running <= 3);
+            
+            values.push([i,x]);
+            setTimeout(function (){
+                running--;
+                // console.log('['+i+'] finished! (running: '+running+', values=[['+values.join('],[')+']])');
+                next(null);
+            }, 10);
+        })
+        .seq(function (){
+            clearTimeout(to);
+            assert.eql(values,
+                [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8],[8,9],[9,10]]
+            );
+        })
+    ;
+};
+
 exports.seqEach_ = function () {
     var to = setTimeout(function () {
         assert.fail('never got to the end of the chain');
@@ -104,9 +133,39 @@ exports.parEach_ = function () {
     ;
 };
 
+exports.parEachLimited_ = function () {
+    var to = setTimeout(function () {
+        assert.fail('never finished');
+    }, 500);
+    
+    var running = 0;
+    var values = [];
+    Seq([1,2,3,4,5,6,7,8,9,10])
+        .parEach_(3, function (next, x, i){
+            running ++;
+            
+            assert.ok(running <= 3);
+            
+            values.push([i,x]);
+            setTimeout(function () {
+                running --;
+                next(null);
+            }, 10);
+        })
+        .seq(function () {
+            clearTimeout(to);
+            assert.eql(values,
+                [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8],[8,9],[9,10]]
+            );
+        })
+    ;
+};
+
+
+
 exports.seqMap_ = function () {
     var to = setTimeout(function () {
-        assert.fail('never got to the end of the chain');
+        assert.fail('seqMap_ never got to the end of the chain');
     }, 5000);
     
     var acc = [];
@@ -128,7 +187,7 @@ exports.seqMap_ = function () {
 
 exports.parMap_ = function () {
     var to = setTimeout(function () {
-        assert.fail('never got to the end of the chain');
+        assert.fail('parMap_ never got to the end of the chain');
     }, 5000);
     
     var acc = [];
@@ -144,6 +203,86 @@ exports.parMap_ = function () {
             clearTimeout(to);
             assert.eql(acc, [ 7, 8, 9 ]);
             assert.eql(this.stack, [ 70, 80, 90 ]);
+        })
+    ;
+};
+
+exports.parMapLimited_ = function () {
+    var to = setTimeout(function () {
+        assert.fail('parMapLimited_ never finished');
+    }, 500);
+    
+    var running = 0;
+    var values = [];
+    Seq([1,2,3,4,5,6,7,8,9,10])
+        .parMap_(2, function (next, x, i) {
+            running ++;
+            
+            assert.ok(running <= 2);
+            
+            setTimeout(function (){
+                running --;
+                next(null, x * 10);
+            }, Math.floor(Math.random() * 100));
+        })
+        .seq(function () {
+            clearTimeout(to);
+            assert.eql(this.stack, [10,20,30,40,50,60,70,80,90,100]);
+            assert.eql(this.stack, [].slice.call(arguments));
+        })
+    ;
+};
+
+
+exports.seqFilter_ = function () {
+    var to = setTimeout(function () {
+        assert.fail('seqFilter_ never finished');
+    }, 500);
+    
+    var running = 0;
+    var values = [];
+    Seq([1,2,3,4,5,6,7,8,9,10])
+        .seqFilter_(function (next, x, i) {
+            running ++;
+            
+            // TODO: buh?
+            // assert.eql(running, 1);
+            
+            setTimeout(function () {
+                running --;
+                next(null, x % 2 === 0);
+            }, 10);
+        })
+        .seq(function () {
+            clearTimeout(to);
+            assert.eql(this.stack, [2,4,6,8,10]);
+        })
+    ;
+};
+
+
+exports.parFilterLimited_ = function () {
+    var to = setTimeout(function () {
+        assert.fail('parFilterLimited_ never finished');
+    }, 500);
+    
+    var running = 0;
+    var values = [];
+    Seq([1,2,3,4,5,6,7,8,9,10])
+        .parFilter_(2, function (next, x, i) {
+            running ++;
+            
+            assert.ok(running <= 2);
+            
+            setTimeout(function () {
+                running --;
+                next(null, x % 2 === 0);
+            }, Math.floor(Math.random() * 100));
+        })
+        .seq(function () {
+            clearTimeout(to);
+            assert.eql(this.stack, [2,4,6,8,10]);
+            assert.eql(this.stack, [].slice.call(arguments));
         })
     ;
 };
