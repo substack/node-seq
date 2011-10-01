@@ -176,6 +176,8 @@ This default error handler looks like this:
 
 .forEach(cb)
 ------------
+.forEach(limit, cb)
+------------
 
 Execute each action in the stack under the context of the chain object.
 `forEach` does not wait for any of the actions to finish and does not itself
@@ -188,10 +190,15 @@ index.
 `forEach` is a sequential operation like `seq` and won't run until all pending
 parallel requests yield results.
 
+Optionally, if limit is supplied to `forEach`, at most `limit` callbacks will be
+active at a time. Note that if you do limit the concurrent callbacks, you will need
+to call `this` to advance to the next unseen element (this is not otherwise necessary
+with `forEach`, unlike all other steps). Be wary, as using `limit` implies it is 
+possible for the `Seq()` to advance (or even complete all other steps!) without the 
+`forEach` reaching all elements due to a callback failing to yield.
+
 
 .seqEach(cb)
-------------
-.seqEach(limit, cb)
 ------------
 
 Like `forEach`, call `cb` for each element on the stack, but unlike `forEach`,
@@ -203,13 +210,6 @@ index.
 
 If `this()` is supplied non-falsy error, the error propagates downward but any
 other arguments are ignored. `seqEach` does not modify the stack itself.
-
-Optionally, if limit is supplied to `forEach`, at most `limit` callbacks will be
-active at a time. Note that if you do limit the concurrent callbacks, you will need
-to call `this` to advance to the next unseen element (this is not otherwise necessary
-with `forEach`, unlike all other steps). Be wary, as using `limit` implies it is 
-possible for the `Seq()` to advance (or even complete all other steps!) without the 
-`forEach` reaching all elements due to a callback failing to yield.
 
 
 .parEach(cb)
