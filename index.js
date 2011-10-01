@@ -31,28 +31,26 @@ function builder (saw, xs) {
     };
     context.stack_ = context.stack;
     
-    function action (step, key, f, g) {
+    function action (step, key, start, finish){
         var cb = function (err) {
             var args = [].slice.call(arguments, 1);
             if (err) {
                 context.error = { message : err, key : key };
                 saw.jump(lastPar);
                 saw.down('catch');
-                g();
-            }
-            else {
+                finish();
+            } else {
                 if (typeof key == 'number') {
                     context.stack_[key] = args[0];
                     context.args[key] = args;
-                }
-                else {
+                } else {
                     context.stack_.push.apply(context.stack_, args);
                     if (key !== undefined) {
                         context.vars[key] = args[0];
                         context.args[key] = args;
                     }
                 }
-                if (g) g(args, key);
+                if (finish) finish(args, key);
             }
         };
         Hash(context).forEach(function (v,k) { cb[k] = v });
@@ -73,7 +71,7 @@ function builder (saw, xs) {
         
         cb.ok = cb.bind(cb, null);
         
-        f.apply(cb, context.stack);
+        start.apply(cb, context.stack);
     }
     
     var running = 0;
@@ -184,18 +182,66 @@ function builder (saw, xs) {
         saw.next();
     };
     
-    this.forEach = function (cb) {
-        this.seq(function () {
-            context.stack_ = context.stack.slice();
-            var end = context.stack.length;
+    // this.forEach = function (cb) {
+    //     this.seq(function () {
+    //         context.stack_ = context.stack.slice();
+    //         var end = context.stack.length;
+    //         
+    //         if (end === 0) this(null)
+    //         else context.stack.forEach(function (x, i) {
+    //             action(saw.step, i, function () {
+    //                 cb.call(this, x, i);
+    //                 if (i == end - 1) saw.next();
+    //             });
+    //         });
+    //     });
+    // };
+    
+    this.forEach = function (limit, cb) {
+        if (cb === undefined) { cb = limit; limit = null; }
+        
+        this.seq(function (){
+            if (context.stack.length === 0)
+                return this(null);
             
-            if (end === 0) this(null)
-            else context.stack.forEach(function (x, i) {
-                action(saw.step, i, function () {
-                    cb.call(this, x, i);
-                    if (i == end - 1) saw.next();
-                });
-            });
+            var xs       = context.stack.slice()
+            ,   len      = xs.length
+            ,   active   = 0
+            ,   finished = 0
+            ,   queue    = []
+            ,   visitor
+            ;
+            
+            context.stack_ = xs.slice();
+            
+            if (!limit || limit <= 0)
+                visitor = function (x, i){
+                    action(saw.step, i, function (){
+                        cb.call(this, x, i);
+                        if (i === len - 1)
+                            saw.next();
+                    });
+                }
+            else
+                visitor = function eachCall(x, i){
+                    if (active >= limit)
+                        return queue.push(eachCall.bind(this, x, i));
+                    
+                    active++;
+                    action(saw.step, i,
+                        function (){ cb.call(this, x, i); },
+                        function (){
+                            active--;
+                            finished++;
+                            if (queue.length > 0)
+                                queue.shift()();
+                            else if (i === len - 1)
+                                saw.next();
+                        }
+                    );
+                };
+            
+            xs.forEach(visitor);
         });
     };
     

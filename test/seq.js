@@ -248,6 +248,36 @@ exports.forEach = function () {
     ;
 };
 
+exports.forEachLimited = function () {
+    var to = setTimeout(function () {
+        assert.fail('never finished');
+    }, 500);
+    
+    var running = 0;
+    var values = [];
+    Seq([1,2,3,4,5,6,7,8,9,10])
+        .forEach(3, function (x, i){
+            running++;
+            // console.log('['+i+'] started!  (running: '+running+', values=[['+values.join('],[')+']])');
+            assert.ok(running <= 3);
+            
+            values.push([i,x]);
+            setTimeout((function (){
+                running--;
+                // console.log('['+i+'] finished! (running: '+running+', values=[['+values.join('],[')+']])');
+                this(null);
+            }).bind(this), 10);
+        })
+        .seq(function (){
+            clearTimeout(to);
+            assert.eql(values,
+                [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8],[8,9],[9,10]]
+            );
+        })
+    ;
+};
+
+
 exports.seqEach = function () {
     var to = setTimeout(function () {
         assert.fail('seqEach never finished');
