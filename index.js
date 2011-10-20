@@ -152,7 +152,9 @@ function builder (saw, xs) {
         saw.next();
     };
     
-    [ 'seq', 'par' ].forEach(function (name) {
+    this['finally'] = this.seq;
+    
+    [ 'seq', 'par', 'finally' ].forEach(function (name) {
         this[name + '_'] = function (key) {
             var args = [].slice.call(arguments);
             
