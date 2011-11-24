@@ -32,48 +32,50 @@ function builder (saw, xs) {
     context.stack_ = context.stack;
     
     function action (step, key, f, g) {
-        var cb = function (err) {
-            var args = [].slice.call(arguments, 1);
-            if (err) {
-                context.error = { message : err, key : key };
-                saw.jump(lastPar);
-                saw.down('catch');
-                g();
-            }
-            else {
-                if (typeof key == 'number') {
-                    context.stack_[key] = args[0];
-                    context.args[key] = args;
+        process.nextTick(function() {
+            var cb = function (err) {
+                var args = [].slice.call(arguments, 1);
+                if (err) {
+                    context.error = { message : err, key : key };
+                    saw.jump(lastPar);
+                    saw.down('catch');
+                    g();
                 }
                 else {
-                    context.stack_.push.apply(context.stack_, args);
-                    if (key !== undefined) {
-                        context.vars[key] = args[0];
+                    if (typeof key == 'number') {
+                        context.stack_[key] = args[0];
                         context.args[key] = args;
                     }
+                    else {
+                        context.stack_.push.apply(context.stack_, args);
+                        if (key !== undefined) {
+                            context.vars[key] = args[0];
+                            context.args[key] = args;
+                        }
+                    }
+                    if (g) g(args, key);
                 }
-                if (g) g(args, key);
-            }
-        };
-        Hash(context).forEach(function (v,k) { cb[k] = v });
-        
-        cb.into = function (k) {
-            key = k;
-            return cb;
-        };
-        
-        cb.next = function (err, xs) {
-            context.stack_.push.apply(context.stack_, xs);
-            cb.apply(cb, [err].concat(context.stack));
-        };
-        
-        cb.pass = function (err) {
-            cb.apply(cb, [err].concat(context.stack));
-        };
-        
-        cb.ok = cb.bind(cb, null);
-        
-        f.apply(cb, context.stack);
+            };
+            Hash(context).forEach(function (v,k) { cb[k] = v });
+            
+            cb.into = function (k) {
+                key = k;
+                return cb;
+            };
+            
+            cb.next = function (err, xs) {
+                context.stack_.push.apply(context.stack_, xs);
+                cb.apply(cb, [err].concat(context.stack));
+            };
+            
+            cb.pass = function (err) {
+                cb.apply(cb, [err].concat(context.stack));
+            };
+            
+            cb.ok = cb.bind(cb, null);
+            
+            f.apply(cb, context.stack);
+        });
     }
     
     var running = 0;
