@@ -292,6 +292,11 @@ Create a new nested context. `cb`'s first argument is the previous context, and 
 is the nested `Seq` object.
 
 
+.seqDo(cb)
+----------
+As `do`, but wait for the nested chain to complete before advancing.
+
+
 .flatten(fully=true)
 --------------------
 
