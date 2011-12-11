@@ -2,6 +2,8 @@ var EventEmitter = require('events').EventEmitter;
 var Hash = require('hashish');
 var Chainsaw = require('chainsaw');
 
+var slice = [].slice;
+
 module.exports = Seq;
 function Seq (xs) {
     if (xs && !Array.isArray(xs) || arguments.length > 1) {
@@ -24,6 +26,7 @@ Seq.ap = Seq; // for compatability with versions <0.3
 
 function builder (saw, xs) {
     var context = {
+        dead : false,
         vars : {},
         args : {},
         stack : xs,
@@ -31,10 +34,18 @@ function builder (saw, xs) {
     };
     context.stack_ = context.stack;
     
+    function die(){
+        context.dead = true;
+        saw.step = saw.actions.length+1;
+    }
+    context.die = die;
+    
     function action (step, key, start, finish){
         var cb = function (err) {
-            var args = [].slice.call(arguments, 1);
-            if (err) {
+            var args = slice.call(arguments, 1);
+            if (context.dead) {
+                saw.step = saw.actions.length+1;
+            } else if (err) {
                 context.error = { message : err, key : key };
                 saw.jump(lastPar);
                 saw.down('catch');
@@ -71,6 +82,11 @@ function builder (saw, xs) {
         
         cb.ok = cb.bind(cb, null);
         
+        cb.die = function (){
+            die();
+            return cb;
+        };
+        
         start.apply(cb, context.stack);
     }
     
@@ -78,7 +94,7 @@ function builder (saw, xs) {
     var errors = 0;
     
     this.seq = function (key, cb) {
-        var bound = [].slice.call(arguments, 2);
+        var bound = slice.call(arguments, 2);
         
         if (typeof key === 'function') {
             if (arguments.length > 1) bound.unshift(cb);
@@ -91,7 +107,7 @@ function builder (saw, xs) {
             action(saw.step, key,
                 function () {
                     context.stack_ = [];
-                    var args = [].slice.call(arguments);
+                    var args = slice.call(arguments);
                     args.unshift.apply(args, bound.map(function (arg) {
                         return arg === Seq ? this : arg
                     }, this));
@@ -114,7 +130,7 @@ function builder (saw, xs) {
             context.stack_ = [];
         }
         
-        var bound = [].slice.call(arguments, 2);
+        var bound = slice.call(arguments, 2);
         if (typeof key === 'function') {
             if (arguments.length > 1) bound.unshift(cb);
             cb = key;
@@ -122,7 +138,7 @@ function builder (saw, xs) {
             context.stack_.push(null);
         }
         var cb_ = function () {
-            var args = [].slice.call(arguments);
+            var args = slice.call(arguments);
             args.unshift.apply(args, bound.map(function (arg) {
                 return arg === Seq ? this : arg
             }, this));
@@ -152,13 +168,13 @@ function builder (saw, xs) {
     
     [ 'seq', 'par' ].forEach(function (name) {
         this[name + '_'] = function (key) {
-            var args = [].slice.call(arguments);
+            var args = slice.call(arguments);
             
             var cb = typeof key === 'function'
                 ? args[0] : args[1];
             
             var fn = function () {
-                var argv = [].slice.call(arguments);
+                var argv = slice.call(arguments);
                 argv.unshift(this);
                 cb.apply(this, argv);
             };
@@ -181,21 +197,6 @@ function builder (saw, xs) {
         }
         saw.next();
     };
-    
-    // this.forEach = function (cb) {
-    //     this.seq(function () {
-    //         context.stack_ = context.stack.slice();
-    //         var end = context.stack.length;
-    //         
-    //         if (end === 0) this(null)
-    //         else context.stack.forEach(function (x, i) {
-    //             action(saw.step, i, function () {
-    //                 cb.call(this, x, i);
-    //                 if (i == end - 1) saw.next();
-    //             });
-    //         });
-    //     });
-    // };
     
     this.forEach = function (limit, cb) {
         if (cb === undefined) { cb = limit; limit = null; }
@@ -326,7 +327,7 @@ function builder (saw, xs) {
                 };
                 
                 next.ok = function () {
-                    var args = [].slice.call(arguments);
+                    var args = slice.call(arguments);
                     args.unshift(null);
                     return next.apply(next, args);
                 };
@@ -370,7 +371,7 @@ function builder (saw, xs) {
             };
             
             next.ok = function () {
-                var args = [].slice.call(arguments);
+                var args = slice.call(arguments);
                 args.unshift(null);
                 return next.apply(next, args);
             };
@@ -420,7 +421,7 @@ function builder (saw, xs) {
                 };
                 
                 next.ok = function () {
-                    var args = [].slice.call(arguments);
+                    var args = slice.call(arguments);
                     args.unshift(null);
                     return next.apply(next, args);
                 };
@@ -475,7 +476,7 @@ function builder (saw, xs) {
             };
             
             next.ok = function () {
-                var args = [].slice.call(arguments);
+                var args = slice.call(arguments);
                 args.unshift(null);
                 return next.apply(next, args);
             };
@@ -494,7 +495,7 @@ function builder (saw, xs) {
                 method = 'seq'+name;
                 this[method+'_'] = function (cb) {
                     this[method].call(this, function () {
-                        var args = [].slice.call(arguments);
+                        var args = slice.call(arguments);
                         args.unshift(this);
                         cb.apply(this, args);
                     });
@@ -506,7 +507,7 @@ function builder (saw, xs) {
             this[method+'_'] = function (limit, cb) {
                 if (!cb) { cb = limit; limit = undefined; }
                 this[method].call(this, limit, function (){
-                    var args = [].slice.call(arguments);
+                    var args = slice.call(arguments);
                     args.unshift(this);
                     cb.apply(this, args);
                 });
@@ -519,7 +520,7 @@ function builder (saw, xs) {
             this[name] = function () {
                 context.stack[name].apply(
                     context.stack,
-                    [].slice.call(arguments)
+                    slice.call(arguments)
                 );
                 saw.next();
                 return this;
@@ -532,7 +533,7 @@ function builder (saw, xs) {
             this[name] = function () {
                 var res = context.stack[name].apply(
                     context.stack,
-                    [].slice.call(arguments)
+                    slice.call(arguments)
                 );
                 // stack must be an array, or bad things happen
                 context.stack = (Array.isArray(res) ? res : [res]);
@@ -581,4 +582,5 @@ function builder (saw, xs) {
     this['do'] = function (cb) {
         saw.nest(cb, context);
     };
+    
 }
