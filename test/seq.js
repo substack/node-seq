@@ -32,7 +32,7 @@ exports.seq = function () {
 exports.into = function () {
     var to = setTimeout(function () {
         assert.fail('never got to the end of the chain');
-    }, 10);
+    }, 100);
     var calls = 0;
     
     Seq([3,4,5])
@@ -232,7 +232,7 @@ exports.catchParThenSeq = function () {
 exports.forEach = function () {
     var to = setTimeout(function () {
         assert.fail('seq never fired after forEach');
-    }, 25);
+    }, 100);
     
     var count = 0;
     Seq([1,2,3])
@@ -251,7 +251,7 @@ exports.forEach = function () {
 exports.seqEach = function () {
     var to = setTimeout(function () {
         assert.fail('seqEach never finished');
-    }, 25);
+    }, 100);
     
     var count = 0;
     var ii = 0;
@@ -272,10 +272,10 @@ exports.seqEach = function () {
 exports.seqEachCatch = function () {
     var to = setTimeout(function () {
         assert.fail('never caught the error');
-    }, 25);
+    }, 100);
     var tf = setTimeout(function () {
         assert.fail('never resumed afterwards');
-    }, 25);
+    }, 100);
     
     var meows = [];
     
