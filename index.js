@@ -36,7 +36,9 @@ function builder (saw, xs) {
             var args = [].slice.call(arguments, 1);
             if (err) {
                 context.error = { message : err, key : key };
-                saw.jump(lastPar);
+                if (lastPar != undefined) {
+                    saw.jump(lastPar);
+                }
                 saw.down('catch');
                 g();
             }
@@ -218,6 +220,7 @@ function builder (saw, xs) {
     };
     
     this.parEach = function (limit, cb) {
+        lastPar = saw.step;
         var xs = context.stack.slice();
         if (cb === undefined) { cb = limit; limit = xs.length }
         context.stack_ = [];

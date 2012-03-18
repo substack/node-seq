@@ -83,6 +83,40 @@ exports.catchSeq = function () {
     ;
 };
 
+exports.catchSeqAtIndiviStep = function () {
+    var to = setTimeout(function () {
+        assert.fail('never caught the error');
+    }, 100);
+    
+    var tf = setTimeout(function () {
+        assert.fail('final action never executed');
+    }, 100);
+    
+    Seq([1])
+        .seq(function (n) {
+            assert.eql(n, 1);
+            this(null, 'x');
+        })
+        .catch(function (err) {
+          assert.fail('should skip this catch');
+        })
+        .seq(function (x) {
+            assert.eql(x, 'x');
+        })
+        .seq(function (x) {
+            this('pow!');
+        })
+        .catch(function (err) {
+            assert.eql(err, 'pow!');
+            clearTimeout(to);
+        })
+        .do(function () {
+            //assert.ok(calls.after);
+            clearTimeout(tf);
+        })
+    ;
+};
+
 exports.par = function () {
     var to = setTimeout(function () {
         assert.fail('seq never fired');
