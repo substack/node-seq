@@ -152,29 +152,9 @@ All arguments after `cb` will be bound to `cb`, which is useful because
 bound arguments and it will get tranformed into `this`.
 
 
-.catch(cb)
-----------
-
-Catch errors. Whenever a function calls `this` with a non-falsy first argument,
-the message propagates down the chain to the first `catch` it sees.
-The callback `cb` fires with the error object as its first argument and the key
-that the action that caused the error was populating, which may be undefined.
-
-`catch` is a sequential action and further actions may appear after a `catch` in
-a chain. If the execution reaches a `catch` in a chain and no error has occured,
-the `catch` is skipped over.
-
-For convenience, there is a default error handler at the end of all chains.
-This default error handler looks like this:
-
-````javascript
-.catch(function (err) {
-    console.error(err.stack ? err.stack : err)
-})
-````
-
-
 .forEach(cb)
+------------
+.forEach(limit, cb)
 ------------
 
 Execute each action in the stack under the context of the chain object.
@@ -187,6 +167,13 @@ index.
 
 `forEach` is a sequential operation like `seq` and won't run until all pending
 parallel requests yield results.
+
+Optionally, if limit is supplied to `forEach`, at most `limit` callbacks will be
+active at a time. Note that if you do limit the concurrent callbacks, you will need
+to call `this` to advance to the next unseen element (this is not otherwise necessary
+with `forEach`, unlike all other steps). Be wary, as using `limit` implies it is 
+possible for the `Seq()` to advance (or even complete all other steps!) without the 
+`forEach` reaching all elements due to a callback failing to yield.
 
 
 .seqEach(cb)
@@ -275,6 +262,35 @@ callback accepts or moves enough values before `i`.
 
 Optionally, if limit is supplied to `parEach`, at most `limit` callbacks will be
 active at a time.
+
+
+.catch(cb)
+----------
+
+Catch errors. Whenever a function calls `this` with a non-falsy first argument,
+the message propagates down the chain to the first `catch` it sees.
+The callback `cb` fires with the error object as its first argument and the key
+that the action that caused the error was populating, which may be undefined.
+
+`catch` is a sequential action and further actions may appear after a `catch` in
+a chain. If the execution reaches a `catch` in a chain and no error has occured,
+the `catch` is skipped over.
+
+For convenience, there is a default error handler at the end of all chains.
+This default error handler looks like this:
+
+````javascript
+.catch(function (err) {
+    console.error(err.stack ? err.stack : err)
+})
+````
+
+.die()
+------
+
+Terminates the chain, such that no *further* actions will execute. In-flight actions
+will continue to completion (invoking their callbacks, etc) but will not trigger 
+subsequent steps to be notified or invoked.
 
 
 .do(cb)
