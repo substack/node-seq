@@ -944,3 +944,31 @@ exports.regressionTestForAccidentalDeepTraversalOfTheContext = function () {
             assert.ok((new Date().getTime() - startTime) < 1000, 'if this test takes longer than a second, the bug must have been reintroduced');
         });
 };
+
+exports.seqAsArgument = function () {
+    var to = setTimeout(function () {
+        assert.fail('seq never fired');
+    }, 500);
+    Seq()
+        .seq(function(next) { 
+            assert.deepEqual(this, next);
+            this();
+        }, Seq)
+        .seq(function () {
+            clearTimeout(to);
+        });
+};
+
+exports.seqVarAsArgument = function () {
+    var to = setTimeout(function () {
+        assert.fail('seq never fired');
+    }, 500);
+    Seq()
+        .seq(function (foo) {
+            assert.eql(this.vars.foo, foo);
+            this();
+        }, Seq.vars('foo'))
+        .seq(function () {
+            clearTimeout(to);
+        });
+};
