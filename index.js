@@ -20,6 +20,15 @@ function Seq (xs) {
     return ch;
 }
 
+Seq.vars = function(key) {
+    var f = function(context) {
+        return context.vars[key];
+    }
+    f.__SeqLateBind__ = true;
+
+    return f;
+}
+
 Seq.ap = Seq; // for compatability with versions <0.3
 
 function builder (saw, xs) {
@@ -95,6 +104,8 @@ function builder (saw, xs) {
                     context.stack_ = [];
                     var args = [].slice.call(arguments);
                     args.unshift.apply(args, bound.map(function (arg) {
+                        if (arg.__SeqLateBind__)
+                            return arg(context);
                         return arg === Seq ? this : arg
                     }, this));
                     
@@ -126,6 +137,8 @@ function builder (saw, xs) {
         var cb_ = function () {
             var args = [].slice.call(arguments);
             args.unshift.apply(args, bound.map(function (arg) {
+                if (arg.__SeqLateBind__)
+                    return arg(context);
                 return arg === Seq ? this : arg
             }, this));
             
