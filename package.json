@@ -14,7 +14,7 @@
     "devDependencies" : {
         "expresso" : ">=0.7.x"
     },
-    "script" : {
+    "scripts" : {
         "test" : "expresso"
     },
     "keywords" : [
